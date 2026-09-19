@@ -1,0 +1,3783 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestión Venta y Stock · v02</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --crema:#FDF8F3;
+  --crema2:#F5EBE0;
+  --terracota:#B85C50;
+  --salvia:#9BB08F;
+  --madera:#8B6F47;
+  --madera2:#A67B5B;
+  --tinta:#2C2416;
+  --linea:#DCCAB6;
+  --alerta:#D9A441;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--crema);
+  color:var(--tinta);
+  font-family:'DM Sans',system-ui,sans-serif;
+  font-size:15px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.envoltorio{max-width:1320px;margin:0 auto;padding:18px 20px 60px}
+.cabecera{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:16px;padding-bottom:12px;border-bottom:2px solid var(--terracota);
+}
+.cabecera h1{
+  margin:0;font-size:30px;font-weight:700;letter-spacing:-0.4px;
+}
+.marca{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--madera);margin-bottom:2px;
+}
+.sello{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--madera2);
+  text-align:right;letter-spacing:1px;
+}
+.barra{
+  display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 20px;
+}
+.barra button{
+  font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;
+  background:var(--crema2);color:var(--tinta);
+  border:1px solid var(--linea);border-radius:3px;
+  padding:7px 14px;cursor:pointer;transition:background .12s,color .12s;
+}
+.barra button:hover{background:#EFE0D0}
+.barra button.activo{background:var(--terracota);color:#FDF8F3;border-color:var(--terracota)}
+.pantalla{display:block}
+.oculta{display:none}
+h2.titulo{
+  font-size:13px;font-family:'JetBrains Mono',monospace;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--terracota);margin:0 0 4px;font-weight:700;
+}
+h2.titulo.verde{color:#5F7D52}
+h2.titulo.marron{color:var(--madera)}
+p.bajada{margin:0 0 18px;color:#6B5B45;font-size:14px;max-width:760px}
+.bloque{
+  background:#fff;border:1px solid var(--linea);border-radius:4px;
+  padding:16px 18px;margin-bottom:18px;
+}
+.bloque.verde{border-left:4px solid var(--salvia)}
+.bloque.marron{border-left:4px solid var(--madera2)}
+.bloque.rojo{border-left:4px solid var(--terracota)}
+.rejillaPanel{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.columnaPanel{
+  border:1px solid var(--linea);border-radius:4px;padding:14px;background:#fff;
+}
+.columnaPanel h3{
+  margin:0 0 10px;font-size:11px;font-family:'JetBrains Mono',monospace;
+  letter-spacing:2px;text-transform:uppercase;color:var(--madera);
+}
+.columnaPanel.clientes{border-top:4px solid #7E9DBF}
+.columnaPanel.proveedores{border-top:4px solid var(--madera2)}
+.columnaPanel.productos{border-top:4px solid var(--salvia)}
+.botonGrande{
+  display:block;width:100%;text-align:left;margin-bottom:8px;
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  background:var(--crema2);border:1px solid var(--linea);border-radius:3px;
+  padding:10px 12px;cursor:pointer;color:var(--tinta);
+}
+.botonGrande:hover{background:#EFE0D0}
+.botonGrande:last-child{margin-bottom:0}
+.tarjetas{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.tarjeta{
+  background:#fff;border:1px solid var(--linea);border-radius:4px;padding:12px 14px;
+}
+.tarjeta .rotulo{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;
+  text-transform:uppercase;color:var(--madera);
+}
+.tarjeta .cifra{
+  font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:700;margin-top:4px;
+}
+.cifra.positiva{color:#5F7D52}
+.cifra.negativa{color:var(--terracota)}
+table.planilla{width:100%;border-collapse:collapse;font-size:13px}
+table.planilla th{
+  background:var(--crema2);text-align:left;padding:7px 9px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--madera);border-bottom:1px solid var(--linea);
+  white-space:nowrap;
+}
+table.planilla td{padding:6px 9px;border-bottom:1px solid #EFE4D6;vertical-align:top}
+table.planilla tbody tr:nth-child(even){background:#FCF7F1}
+table.planilla tbody tr:hover{background:#F7EDE2}
+td.num,th.num{text-align:right;font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.envolturaTabla{overflow-x:auto;border:1px solid var(--linea);border-radius:4px;background:#fff}
+.formulario{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 18px;max-width:900px}
+.campo{display:flex;flex-direction:column}
+.campo.ancho{grid-column:1 / -1}
+label{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.4px;
+  text-transform:uppercase;color:var(--madera);margin-bottom:4px;
+}
+input,select,textarea{
+  font-family:'DM Sans',sans-serif;font-size:14px;color:var(--tinta);
+  background:var(--crema);border:1px solid var(--linea);border-radius:3px;
+  padding:7px 9px;width:100%;
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--salvia);outline-offset:-1px}
+textarea{min-height:70px;resize:vertical}
+input[readonly]{background:#F0E7DA;color:#6B5B45}
+.acciones{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;align-items:center}
+button.accion{
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  background:var(--terracota);color:#FDF8F3;border:1px solid var(--terracota);
+  border-radius:3px;padding:9px 18px;cursor:pointer;
+}
+button.accion:hover{background:#A34F44}
+button.accion.verde{background:#6E8F5E;border-color:#6E8F5E}
+button.accion.verde:hover{background:#5F7D52}
+button.accion.marron{background:var(--madera);border-color:var(--madera)}
+button.accion.marron:hover{background:#755C3A}
+button.suave{
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  background:var(--crema2);color:var(--tinta);border:1px solid var(--linea);
+  border-radius:3px;padding:8px 14px;cursor:pointer;
+}
+button.suave:hover{background:#EFE0D0}
+button.mini{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.6px;
+  background:transparent;border:1px solid var(--linea);border-radius:3px;
+  padding:3px 7px;cursor:pointer;color:var(--madera);margin-right:4px;
+}
+button.mini:hover{background:var(--crema2);color:var(--tinta)}
+button.mini.peligro:hover{background:var(--terracota);color:#fff;border-color:var(--terracota)}
+.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:14px}
+.filtros .campo{min-width:150px}
+.aviso{
+  font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--madera);
+  margin-top:8px;
+}
+.chip{
+  display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:1px;text-transform:uppercase;padding:2px 7px;border-radius:2px;
+  border:1px solid var(--linea);color:var(--madera);
+}
+.chip.venta{background:#E8F0E3;border-color:#B7CDA9;color:#4F6B43}
+.chip.compra{background:#F2E8DC;border-color:#D3BC9F;color:#7A5F38}
+.chip.activo{background:#E8F0E3;border-color:#B7CDA9;color:#4F6B43}
+.chip.inactivo{background:#F0E7DA;color:#8A7A63}
+.chip.suspendido{background:#F7E6D0;border-color:#E0BE8A;color:#8A6520}
+tr.bajoMinimo td{background:#FBF1DC !important}
+tr.bajoMinimo td:first-child{box-shadow:inset 3px 0 0 var(--alerta)}
+td.sinStock,input.sinStock{background:#FBECC8 !important}
+.tablaCarga{width:100%;border-collapse:collapse;font-size:13px}
+.tablaCarga th{
+  padding:7px 8px;font-family:'JetBrains Mono',monospace;font-size:10px;
+  letter-spacing:1.2px;text-transform:uppercase;color:#FDF8F3;
+}
+.tablaCarga.venta th{background:#6E8F5E}
+.tablaCarga.compra th{background:var(--madera)}
+.tablaCarga td{padding:3px 4px;border-bottom:1px solid #EFE4D6}
+.tablaCarga input,.tablaCarga select{padding:5px 7px;font-size:13px}
+.tablaCarga td.stockCelda{
+  font-family:'JetBrains Mono',monospace;text-align:right;font-size:12px;
+  color:var(--madera);white-space:nowrap;
+}
+.totalFinal{
+  display:flex;justify-content:flex-end;align-items:baseline;gap:14px;margin-top:12px;
+}
+.totalFinal .rotulo{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--madera);
+}
+.totalFinal .cifra{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700}
+.dosColumnas{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.tresColumnas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.miniTabla{width:100%;border-collapse:collapse;font-size:13px}
+.miniTabla th{
+  background:var(--crema2);text-align:left;padding:6px 8px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--madera);border-bottom:1px solid var(--linea);
+}
+.miniTabla td{padding:5px 8px;border-bottom:1px solid #EFE4D6}
+.listaEditable li{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid #EFE4D6;font-size:13px;
+}
+.listaEditable{list-style:none;margin:0 0 10px;padding:0}
+.pieNota{
+  margin-top:34px;padding-top:12px;border-top:1px solid var(--linea);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.2px;
+  color:var(--madera2);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+}
+#comprobante{display:none}
+.subBarra{display:flex;flex-wrap:wrap;gap:6px;margin:-6px 0 16px}
+.subBarra button{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.4px;
+  text-transform:uppercase;background:transparent;color:var(--madera);
+  border:1px solid var(--linea);border-radius:3px;padding:5px 11px;cursor:pointer;
+}
+.subBarra button:hover{background:var(--crema2);color:var(--tinta)}
+.subBarra button.activo{background:var(--madera);color:var(--crema);border-color:var(--madera)}
+.panelSecundario{display:none}
+.panelSecundario.visible{display:block}
+.grafico{width:100%;height:auto;display:block}
+.grafico text{font-family:'JetBrains Mono',monospace;font-size:9px;fill:#8B6F47}
+.grafico text.valor{fill:var(--tinta);font-weight:700}
+.grafico .ejeSuave{stroke:#EFE4D6;stroke-width:1}
+.variacion{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700}
+.variacion.sube{color:#5F7D52}
+.variacion.baja{color:var(--terracota)}
+.filaComparada td{font-family:'JetBrains Mono',monospace}
+.chip.devolucion{background:#F3E2E0;border-color:#DFB6B0;color:#8A423A}
+.chip.pendiente{background:#F7E6D0;border-color:#E0BE8A;color:#8A6520}
+.chip.cobrado{background:#E8F0E3;border-color:#B7CDA9;color:#4F6B43}
+.filaEditando td{background:#F1E8DB !important;box-shadow:inset 3px 0 0 var(--terracota)}
+.rotuloDeuda{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--madera);
+}
+.vistaPrevia td{font-family:'JetBrains Mono',monospace}
+.vistaPrevia td.viejo{color:#8A7A63;text-decoration:line-through}
+.vistaPrevia td.nuevo{color:#5F7D52;font-weight:700}
+.cajaModo{
+  display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;
+  padding:12px 14px;background:var(--crema2);border:1px solid var(--linea);
+  border-radius:4px;margin-bottom:14px;
+}
+.cajaModo .campo{min-width:160px}
+.listaRespaldos li{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:5px 0;border-bottom:1px solid #EFE4D6;font-size:13px;
+  font-family:'JetBrains Mono',monospace;
+}
+.avisoFuerte{
+  background:#FBF1DC;border:1px solid #E0BE8A;border-radius:3px;
+  padding:9px 12px;font-size:13px;color:#7A5F38;margin-bottom:14px;
+}
+.avisoFuerte.apagado{display:none}
+.pieAgrupado{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;
+  text-transform:uppercase;color:var(--madera);margin:16px 0 6px;
+  border-bottom:1px solid var(--linea);padding-bottom:4px;
+}
+@media print{
+  body{background:#fff}
+  .envoltorio{display:none}
+  #comprobante{display:block;padding:20px;font-family:'DM Sans',sans-serif}
+  #comprobante h2{margin:0 0 4px;font-size:22px}
+  #comprobante table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+  #comprobante th{background:#eee;text-align:left;padding:6px;border:1px solid #999}
+  #comprobante td{padding:6px;border:1px solid #bbb}
+  #comprobante.ticket{width:72mm;padding:4mm;font-size:11px;font-family:'JetBrains Mono',monospace}
+  #comprobante.ticket.angosto{width:52mm}
+  #comprobante.ticket h2{font-size:14px;text-align:center}
+  #comprobante.ticket table{font-size:10px;margin-top:8px}
+  #comprobante.ticket th{background:none;border:none;border-bottom:1px dashed #333;padding:2px 0}
+  #comprobante.ticket td{border:none;padding:2px 0}
+  #comprobante.ticket h3{text-align:right;font-size:13px}
+}
+@media (max-width:980px){
+  .rejillaPanel{grid-template-columns:1fr}
+  .tarjetas{grid-template-columns:repeat(2,1fr)}
+  .formulario{grid-template-columns:1fr}
+  .dosColumnas,.tresColumnas{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="envoltorio">
+
+<header class="cabecera">
+  <div>
+    <div class="marca">Mimetika</div>
+    <h1>Gestión Venta y Stock</h1>
+  </div>
+  <div class="sello">
+    Sistema de administración · v02<br>
+    Clientes · Proveedores · Productos · Stock
+  </div>
+</header>
+
+<nav class="barra" id="barraNavegacion">
+  <button data-pantalla="Panel">Panel de Control</button>
+  <button data-pantalla="Clientes">Clientes</button>
+  <button data-pantalla="Proveedores">Proveedores</button>
+  <button data-pantalla="Productos">Productos</button>
+  <button data-pantalla="Precios">Precios</button>
+  <button data-pantalla="Ventas">Ventas</button>
+  <button data-pantalla="Compras">Compras</button>
+  <button data-pantalla="Movimientos">Movimientos</button>
+  <button data-pantalla="CuentaCorriente">Cuenta Corriente</button>
+  <button data-pantalla="Reposicion">Reposición</button>
+  <button data-pantalla="Estadisticas">Estadísticas</button>
+  <button data-pantalla="Respaldo">Respaldo</button>
+</nav>
+
+<datalist id="catalogoProductos"></datalist>
+
+<main>
+
+<section class="pantalla" id="pantallaPanel">
+  <h2 class="titulo">Panel de Control</h2>
+  <p class="bajada">Toda la operación del comercio en un solo archivo. Los datos quedan guardados en esta misma computadora y en este mismo navegador; conviene bajar un respaldo cada tanto desde la solapa Respaldo.</p>
+
+  <div class="avisoFuerte apagado" id="avisoRespaldoViejo"></div>
+
+  <div class="tarjetas">
+    <div class="tarjeta">
+      <div class="rotulo">Balance de Caja</div>
+      <div class="cifra" id="panelCaja">$ 0,00</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Capital en Bienes</div>
+      <div class="cifra" id="panelBienes">$ 0,00</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Patrimonio Neto</div>
+      <div class="cifra" id="panelPatrimonio">$ 0,00</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Margen del mes</div>
+      <div class="cifra" id="panelMargen">$ 0,00</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Deuda en cuenta corriente</div>
+      <div class="cifra" id="panelDeuda">$ 0,00</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Productos bajo mínimo</div>
+      <div class="cifra" id="panelAlertas">0</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Comprobantes del mes</div>
+      <div class="cifra" id="panelComprobantes">0</div>
+    </div>
+    <div class="tarjeta">
+      <div class="rotulo">Renglones guardados</div>
+      <div class="cifra" id="panelRenglones">0</div>
+    </div>
+  </div>
+
+  <div class="rejillaPanel">
+    <div class="columnaPanel clientes">
+      <h3>Clientes</h3>
+      <button class="botonGrande" data-pantalla="Clientes">Listado de Clientes</button>
+      <button class="botonGrande" id="botonNuevoClientePanel">Nuevo Cliente</button>
+      <button class="botonGrande" data-pantalla="Ventas">Ventas</button>
+      <button class="botonGrande" data-pantalla="CuentaCorriente">Cuenta Corriente</button>
+    </div>
+    <div class="columnaPanel proveedores">
+      <h3>Proveedores</h3>
+      <button class="botonGrande" data-pantalla="Proveedores">Listado de Proveedores</button>
+      <button class="botonGrande" id="botonNuevoProveedorPanel">Nuevo Proveedor</button>
+      <button class="botonGrande" data-pantalla="Compras">Compras</button>
+      <button class="botonGrande" data-pantalla="Reposicion">Panel de Reposición</button>
+    </div>
+    <div class="columnaPanel productos">
+      <h3>Productos</h3>
+      <button class="botonGrande" data-pantalla="Productos">Listado de Productos</button>
+      <button class="botonGrande" id="botonNuevoProductoPanel">Nuevo Producto</button>
+      <button class="botonGrande" data-pantalla="Precios">Precios e historial</button>
+      <button class="botonGrande" data-pantalla="Movimientos">Movimientos</button>
+    </div>
+  </div>
+
+  <div class="dosColumnas" style="margin-top:18px">
+    <div class="bloque">
+      <h2 class="titulo">Estado de Producto</h2>
+      <ul class="listaEditable" id="listaEstados"></ul>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nuevoEstado" placeholder="Agregar estado">
+        <button class="suave" id="botonAgregaEstado">Agregar</button>
+      </div>
+    </div>
+    <div class="bloque">
+      <h2 class="titulo">Categoría de Producto</h2>
+      <ul class="listaEditable" id="listaCategorias"></ul>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="nuevaCategoria" placeholder="Agregar categoría">
+        <button class="suave" id="botonAgregaCategoria">Agregar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaClientes">
+  <h2 class="titulo">Listado de Clientes</h2>
+  <p class="bajada">Cada cliente muestra el total vendido, la fecha de su última compra y el saldo que adeuda en cuenta corriente.</p>
+  <div class="filtros">
+    <div class="campo" style="min-width:260px">
+      <label>Buscar</label>
+      <input type="text" id="buscaCliente" placeholder="Nombre, localidad, mail...">
+    </div>
+    <button class="suave" id="botonLimpiaCliente">Quita filtros</button>
+    <button class="accion" id="botonIrNuevoCliente">Nuevo Cliente</button>
+  </div>
+  <div class="envolturaTabla">
+    <table class="planilla">
+      <thead><tr>
+        <th>Id</th><th>Ingreso</th><th>Nombre</th><th>Dirección</th><th>Localidad</th>
+        <th>Teléfono</th><th>Mail</th><th>Contacto</th>
+        <th class="num">Vendido $</th><th class="num">Debe $</th><th>Última venta</th><th>Observaciones</th><th></th>
+      </tr></thead>
+      <tbody id="cuerpoClientes"></tbody>
+    </table>
+  </div>
+  <div class="aviso" id="pieClientes"></div>
+</section>
+
+<section class="pantalla oculta" id="pantallaNuevoCliente">
+  <h2 class="titulo" id="tituloFichaCliente">Nuevo Cliente</h2>
+  <p class="bajada">El identificador y la fecha de ingreso se completan solos. Sólo el nombre es obligatorio.</p>
+  <div class="bloque">
+    <div class="formulario">
+      <div class="campo"><label>IdCliente</label><input type="text" id="cliId" readonly></div>
+      <div class="campo"><label>Fecha de ingreso</label><input type="date" id="cliFecha"></div>
+      <div class="campo ancho"><label>Nombre</label><input type="text" id="cliNombre"></div>
+      <div class="campo ancho"><label>Dirección</label><input type="text" id="cliDireccion"></div>
+      <div class="campo"><label>Localidad</label><input type="text" id="cliLocalidad"></div>
+      <div class="campo"><label>Contacto</label><input type="text" id="cliContacto"></div>
+      <div class="campo"><label>Teléfono</label><input type="text" id="cliTelefono"></div>
+      <div class="campo"><label>Teléfono 2</label><input type="text" id="cliTelefono2"></div>
+      <div class="campo ancho"><label>Mail</label><input type="text" id="cliMail"></div>
+      <div class="campo ancho"><label>Observaciones</label><textarea id="cliObservaciones"></textarea></div>
+    </div>
+    <div class="acciones">
+      <button class="accion" id="botonGuardaCliente">Ingresa el Nuevo Cliente</button>
+      <button class="suave" id="botonCancelaCliente">Cancelar</button>
+      <span class="aviso" id="avisoCliente"></span>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaProveedores">
+  <h2 class="titulo marron">Listado de Proveedores</h2>
+  <p class="bajada">Mismo criterio que el listado de clientes, con el monto comprado y la fecha de la última compra.</p>
+  <div class="filtros">
+    <div class="campo" style="min-width:260px">
+      <label>Buscar</label>
+      <input type="text" id="buscaProveedor" placeholder="Nombre, localidad, mail...">
+    </div>
+    <button class="suave" id="botonLimpiaProveedor">Quita filtros</button>
+    <button class="accion marron" id="botonIrNuevoProveedor">Nuevo Proveedor</button>
+  </div>
+  <div class="envolturaTabla">
+    <table class="planilla">
+      <thead><tr>
+        <th>Id</th><th>Ingreso</th><th>Nombre</th><th>Dirección</th><th>Localidad</th>
+        <th>Teléfono</th><th>Teléfono 2</th><th>Mail</th><th>Contacto</th>
+        <th class="num">Comprado $</th><th>Última compra</th><th>Observaciones</th><th></th>
+      </tr></thead>
+      <tbody id="cuerpoProveedores"></tbody>
+    </table>
+  </div>
+  <div class="aviso" id="pieProveedores"></div>
+</section>
+
+<section class="pantalla oculta" id="pantallaNuevoProveedor">
+  <h2 class="titulo marron" id="tituloFichaProveedor">Nuevo Proveedor</h2>
+  <p class="bajada">Funciona igual que la ficha de cliente.</p>
+  <div class="bloque marron">
+    <div class="formulario">
+      <div class="campo"><label>IdProveedor</label><input type="text" id="provId" readonly></div>
+      <div class="campo"><label>Fecha de ingreso</label><input type="date" id="provFecha"></div>
+      <div class="campo ancho"><label>Nombre</label><input type="text" id="provNombre"></div>
+      <div class="campo ancho"><label>Dirección</label><input type="text" id="provDireccion"></div>
+      <div class="campo"><label>Localidad</label><input type="text" id="provLocalidad"></div>
+      <div class="campo"><label>Contacto</label><input type="text" id="provContacto"></div>
+      <div class="campo"><label>Teléfono</label><input type="text" id="provTelefono"></div>
+      <div class="campo"><label>Teléfono 2</label><input type="text" id="provTelefono2"></div>
+      <div class="campo ancho"><label>Mail</label><input type="text" id="provMail"></div>
+      <div class="campo ancho"><label>Observaciones</label><textarea id="provObservaciones"></textarea></div>
+    </div>
+    <div class="acciones">
+      <button class="accion marron" id="botonGuardaProveedor">Ingresa el Nuevo Proveedor</button>
+      <button class="suave" id="botonCancelaProveedor">Cancelar</button>
+      <span class="aviso" id="avisoProveedor"></span>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaProductos">
+  <h2 class="titulo verde">Listado de Productos</h2>
+  <p class="bajada">Cantidad comprada, devuelta, vendida y stock en almacén. Las filas resaltadas están por debajo de la cantidad mínima de reposición.</p>
+  <div class="filtros">
+    <div class="campo" style="min-width:220px">
+      <label>Buscar</label>
+      <input type="text" id="buscaProducto" placeholder="Nombre, SKU o descripción...">
+    </div>
+    <div class="campo"><label>Estado</label><select id="filtroEstado"></select></div>
+    <div class="campo"><label>Categoría</label><select id="filtroCategoria"></select></div>
+    <div class="campo"><label>Proveedor</label><select id="filtroProveedorProd"></select></div>
+    <button class="suave" id="botonLimpiaProducto">Quita filtros</button>
+    <button class="accion verde" id="botonIrNuevoProducto">Nuevo Producto</button>
+  </div>
+  <div class="envolturaTabla">
+    <table class="planilla">
+      <thead><tr>
+        <th>Id</th><th>SKU</th><th>Nombre</th><th>Estado</th><th>Proveedor</th><th>Categoría</th>
+        <th class="num">Cant. mín.</th><th class="num">Prec. Compra</th><th class="num">Costo prom.</th><th class="num">Prec. Venta</th>
+        <th class="num">Comprado</th><th class="num">Vendido</th><th class="num">Devuelto</th><th class="num">Stock</th>
+        <th class="num">Capital venta</th><th class="num">Capital costo</th><th></th>
+      </tr></thead>
+      <tbody id="cuerpoProductos"></tbody>
+    </table>
+  </div>
+  <div class="aviso" id="pieProductos"></div>
+</section>
+
+<section class="pantalla oculta" id="pantallaNuevoProducto">
+  <h2 class="titulo verde" id="tituloFichaProducto">Nuevo Producto</h2>
+  <p class="bajada">La cantidad mínima habilita el aviso de reposición. El SKU o código de barras sirve para buscar el producto al vender.</p>
+  <div class="bloque verde">
+    <div class="formulario">
+      <div class="campo"><label>IdProducto</label><input type="text" id="proId" readonly></div>
+      <div class="campo"><label>Fecha de ingreso</label><input type="date" id="proFecha"></div>
+      <div class="campo ancho"><label>Nombre</label><input type="text" id="proNombre"></div>
+      <div class="campo"><label>SKU / Código de barras</label><input type="text" id="proSku"></div>
+      <div class="campo"><label>Estado</label><select id="proEstado"></select></div>
+      <div class="campo"><label>Categoría</label><select id="proCategoria"></select></div>
+      <div class="campo"><label>Proveedor</label><select id="proProveedor"></select></div>
+      <div class="campo"><label>Cantidad mínima para reposición</label><input type="number" id="proMinima" value="0" step="1"></div>
+      <div class="campo"><label>Precio de compra</label><input type="number" id="proPrecioCompra" value="0" step="0.01"></div>
+      <div class="campo"><label>Precio de venta</label><input type="number" id="proPrecioVenta" value="0" step="0.01"></div>
+      <div class="campo ancho"><label>Descripción</label><textarea id="proDescripcion"></textarea></div>
+    </div>
+    <div class="acciones">
+      <button class="accion verde" id="botonGuardaProducto">Ingresa el Nuevo Producto</button>
+      <button class="suave" id="botonCancelaProducto">Cancelar</button>
+      <span class="aviso" id="avisoProducto"></span>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaPrecios">
+  <h2 class="titulo verde">Precios</h2>
+  <p class="bajada">Actualización masiva por porcentaje con vista previa antes de aplicar, e historial de cada cambio guardado con su fecha.</p>
+  <div class="subBarra" id="subBarraPrecios">
+    <button data-panel="PreciosMasivo" class="activo">Actualización masiva</button>
+    <button data-panel="PreciosHistorial">Historial de precios</button>
+  </div>
+
+  <div class="panelSecundario visible" id="panelPreciosMasivo">
+    <div class="cajaModo">
+      <div class="campo"><label>Alcance</label>
+        <select id="precioAlcance">
+          <option value="todos">Todos los productos</option>
+          <option value="categoria">Una categoría</option>
+          <option value="proveedor">Un proveedor</option>
+        </select>
+      </div>
+      <div class="campo"><label>Valor del alcance</label><select id="precioAlcanceValor"></select></div>
+      <div class="campo"><label>Campo a modificar</label>
+        <select id="precioCampo">
+          <option value="venta">Precio de venta</option>
+          <option value="compra">Precio de compra</option>
+          <option value="ambos">Ambos precios</option>
+        </select>
+      </div>
+      <div class="campo"><label>Porcentaje</label><input type="number" id="precioPorcentaje" value="10" step="0.1"></div>
+      <div class="campo"><label>Redondeo</label>
+        <select id="precioRedondeo">
+          <option value="0">Sin redondear</option>
+          <option value="10">A múltiplos de 10</option>
+          <option value="100">A múltiplos de 100</option>
+        </select>
+      </div>
+      <button class="suave" id="botonVistaPreviaPrecios">Ver vista previa</button>
+    </div>
+    <div class="envolturaTabla">
+      <table class="planilla vistaPrevia">
+        <thead><tr>
+          <th>Id</th><th>Producto</th>
+          <th class="num">Compra actual</th><th class="num">Compra nueva</th>
+          <th class="num">Venta actual</th><th class="num">Venta nueva</th>
+        </tr></thead>
+        <tbody id="cuerpoVistaPrecios"></tbody>
+      </table>
+    </div>
+    <div class="acciones">
+      <button class="accion verde" id="botonAplicaPrecios">Aplicar a los productos listados</button>
+      <span class="aviso" id="avisoPrecios"></span>
+    </div>
+  </div>
+
+  <div class="panelSecundario" id="panelPreciosHistorial">
+    <div class="filtros">
+      <div class="campo" style="min-width:280px"><label>Producto</label><select id="productoHistorial"></select></div>
+      <button class="suave" id="botonVerHistorial">Ver historial</button>
+    </div>
+    <div class="envolturaTabla">
+      <table class="planilla">
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th>
+          <th class="num">Precio de compra</th><th class="num">Precio de venta</th><th>Motivo</th>
+        </tr></thead>
+        <tbody id="cuerpoHistorialPrecios"></tbody>
+      </table>
+    </div>
+    <div class="aviso" id="pieHistorial"></div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaVentas">
+  <h2 class="titulo verde" id="tituloVenta">Venta</h2>
+  <p class="bajada">Escribí las primeras letras del producto o pasá el lector de código de barras. Se agregan renglones con el botón de abajo. Si no hay existencia el campo se pinta de amarillo: el sistema avisa, pero no impide la venta.</p>
+  <div class="bloque verde">
+    <div class="formulario" style="grid-template-columns:repeat(3,1fr);max-width:none">
+      <div class="campo"><label>Comprobante</label><input type="number" id="ventaId" step="1"></div>
+      <div class="campo"><label>Fecha</label><input type="date" id="ventaFecha"></div>
+      <div class="campo"><label>Hora</label><input type="time" id="ventaHora"></div>
+      <div class="campo" style="grid-column:span 2"><label>Cliente</label><select id="ventaCliente"></select></div>
+      <div class="campo" style="justify-content:flex-end">
+        <button class="suave" id="botonNuevoClienteDesdeVenta">Ingresar Nuevo Cliente</button>
+      </div>
+      <div class="campo"><label>Medio de pago</label>
+        <select id="ventaMedioPago">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Tarjeta">Tarjeta</option>
+          <option value="Cuenta corriente">Cuenta corriente</option>
+        </select>
+      </div>
+      <div class="campo"><label>Estado de cobro</label>
+        <select id="ventaCobrado">
+          <option value="si">Cobrado</option>
+          <option value="no">Pendiente</option>
+        </select>
+      </div>
+      <div class="campo"><label>Formato de impresión</label>
+        <select id="ventaFormato">
+          <option value="A4">Remito A4</option>
+          <option value="ticket80">Ticket 80 mm</option>
+          <option value="ticket58">Ticket 58 mm</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px" class="envolturaTabla">
+      <table class="tablaCarga venta">
+        <thead><tr>
+          <th style="width:44%">Producto</th>
+          <th style="width:15%">Precio Unitario</th>
+          <th style="width:12%">Cantidad</th>
+          <th style="width:17%">Subtotal</th>
+          <th style="width:12%">Stock</th>
+        </tr></thead>
+        <tbody id="cuerpoVenta"></tbody>
+      </table>
+    </div>
+    <div class="acciones" style="margin-top:8px">
+      <button class="suave" id="botonAgregaRenglonVenta">Agregar renglón</button>
+      <span class="aviso" id="contadorRenglonesVenta"></span>
+    </div>
+    <div class="formulario" style="grid-template-columns:1fr;margin-top:12px">
+      <div class="campo ancho"><label>Observaciones</label><textarea id="ventaObservaciones"></textarea></div>
+    </div>
+    <div class="totalFinal">
+      <span class="rotulo">Total</span>
+      <span class="cifra" id="ventaTotal">$ 0,00</span>
+    </div>
+    <div class="acciones">
+      <button class="accion verde" id="botonIngresaVenta">Ingresar VENTA</button>
+      <button class="suave" id="botonImprimeVenta">Imprimir</button>
+      <button class="suave" id="botonLimpiaVenta">Vaciar pantalla</button>
+      <button class="suave" id="botonIrProductosDesdeVenta">Ir a listado de Productos</button>
+      <span class="aviso" id="avisoVenta"></span>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaCompras">
+  <h2 class="titulo marron" id="tituloCompra">Compra</h2>
+  <p class="bajada">Misma mecánica que la pantalla de ventas, eligiendo proveedor en lugar de cliente. La compra incrementa el stock y alimenta el costo promedio ponderado.</p>
+  <div class="bloque marron">
+    <div class="formulario" style="grid-template-columns:repeat(3,1fr);max-width:none">
+      <div class="campo"><label>Comprobante</label><input type="number" id="compraId" step="1"></div>
+      <div class="campo"><label>Fecha</label><input type="date" id="compraFecha"></div>
+      <div class="campo"><label>Hora</label><input type="time" id="compraHora"></div>
+      <div class="campo" style="grid-column:span 2"><label>Proveedor</label><select id="compraProveedor"></select></div>
+      <div class="campo" style="justify-content:flex-end">
+        <button class="suave" id="botonNuevoProveedorDesdeCompra">Ingresar Nuevo Proveedor</button>
+      </div>
+      <div class="campo"><label>Medio de pago</label>
+        <select id="compraMedioPago">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Tarjeta">Tarjeta</option>
+          <option value="Cuenta corriente">Cuenta corriente</option>
+        </select>
+      </div>
+      <div class="campo"><label>Estado de pago</label>
+        <select id="compraCobrado">
+          <option value="si">Pagado</option>
+          <option value="no">Pendiente</option>
+        </select>
+      </div>
+      <div class="campo"><label>Formato de impresión</label>
+        <select id="compraFormato">
+          <option value="A4">Orden A4</option>
+          <option value="ticket80">Ticket 80 mm</option>
+          <option value="ticket58">Ticket 58 mm</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px" class="envolturaTabla">
+      <table class="tablaCarga compra">
+        <thead><tr>
+          <th style="width:44%">Producto</th>
+          <th style="width:15%">Precio Unitario</th>
+          <th style="width:12%">Cantidad</th>
+          <th style="width:17%">Subtotal</th>
+          <th style="width:12%">Stock</th>
+        </tr></thead>
+        <tbody id="cuerpoCompra"></tbody>
+      </table>
+    </div>
+    <div class="acciones" style="margin-top:8px">
+      <button class="suave" id="botonAgregaRenglonCompra">Agregar renglón</button>
+      <span class="aviso" id="contadorRenglonesCompra"></span>
+    </div>
+    <div class="formulario" style="grid-template-columns:1fr;margin-top:12px">
+      <div class="campo ancho"><label>Observaciones</label><textarea id="compraObservaciones"></textarea></div>
+    </div>
+    <div class="totalFinal">
+      <span class="rotulo">Total</span>
+      <span class="cifra" id="compraTotal">$ 0,00</span>
+    </div>
+    <div class="acciones">
+      <button class="accion marron" id="botonIngresaCompra">Ingresar COMPRA</button>
+      <button class="suave" id="botonImprimeCompra">Imprimir</button>
+      <button class="suave" id="botonLimpiaCompra">Vaciar pantalla</button>
+      <button class="suave" id="botonIrProductosDesdeCompra">Ir a listado de Productos</button>
+      <span class="aviso" id="avisoCompra"></span>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaMovimientos">
+  <h2 class="titulo">Listado de Movimientos</h2>
+  <p class="bajada">Histórico completo desde el primer día. Cada comprobante se puede editar, devolver total o parcialmente, o anular por completo.</p>
+  <div class="tarjetas">
+    <div class="tarjeta"><div class="rotulo">Cantidad de ventas</div><div class="cifra" id="movCantVentas">0</div></div>
+    <div class="tarjeta"><div class="rotulo">Productos vendidos</div><div class="cifra" id="movProdVendidos">0</div></div>
+    <div class="tarjeta"><div class="rotulo">Importe compras</div><div class="cifra" id="movImpCompras">$ 0,00</div></div>
+    <div class="tarjeta"><div class="rotulo">Importe ventas netas</div><div class="cifra" id="movImpVentas">$ 0,00</div></div>
+  </div>
+  <div class="filtros">
+    <div class="campo"><label>Tipo</label>
+      <select id="filtroTipoMov">
+        <option value="">Todos</option>
+        <option value="VENTA">Venta</option>
+        <option value="COMPRA">Compra</option>
+        <option value="DEVOLUCION">Devolución</option>
+      </select>
+    </div>
+    <div class="campo"><label>Cobro</label>
+      <select id="filtroCobro">
+        <option value="">Todos</option>
+        <option value="si">Cobrado</option>
+        <option value="no">Pendiente</option>
+      </select>
+    </div>
+    <div class="campo"><label>Desde</label><input type="date" id="filtroDesde"></div>
+    <div class="campo"><label>Hasta</label><input type="date" id="filtroHasta"></div>
+    <div class="campo" style="min-width:230px"><label>Cliente / Proveedor / Producto</label><input type="text" id="filtroTextoMov"></div>
+    <button class="suave" id="botonLimpiaMovimientos">Quita filtros — muestra todos los registros</button>
+  </div>
+  <div class="envolturaTabla">
+    <table class="planilla">
+      <thead><tr>
+        <th>Comprobante</th><th>Tip-Mov</th><th>Fecha</th><th>Hora</th><th>Clie-Prov</th><th>Producto</th>
+        <th class="num">Cant-Compra</th><th class="num">CantVenta</th>
+        <th class="num">ValorCompra</th><th class="num">ValorVenta</th>
+        <th class="num">TotalComp</th><th class="num">TotalVent</th>
+        <th>Pago</th><th>Comentarios</th><th></th>
+      </tr></thead>
+      <tbody id="cuerpoMovimientos"></tbody>
+    </table>
+  </div>
+  <div class="aviso" id="pieMovimientos"></div>
+</section>
+
+<section class="pantalla oculta" id="pantallaCuentaCorriente">
+  <h2 class="titulo">Cuenta Corriente</h2>
+  <p class="bajada">Saldo por cliente sobre las ventas marcadas como pendientes, con los pagos parciales descontados y la antigüedad del comprobante impago más viejo.</p>
+  <div class="tarjetas" style="grid-template-columns:repeat(3,1fr)">
+    <div class="tarjeta"><div class="rotulo">Deuda total</div><div class="cifra" id="ccDeudaTotal">$ 0,00</div></div>
+    <div class="tarjeta"><div class="rotulo">Comprobantes impagos</div><div class="cifra" id="ccImpagos">0</div></div>
+    <div class="tarjeta"><div class="rotulo">Mora más antigua</div><div class="cifra" id="ccMora">0</div></div>
+  </div>
+  <div class="bloque">
+    <h2 class="titulo">Registrar un pago</h2>
+    <div class="formulario" style="grid-template-columns:repeat(4,1fr);max-width:none">
+      <div class="campo"><label>Cliente</label><select id="pagoCliente"></select></div>
+      <div class="campo"><label>Fecha</label><input type="date" id="pagoFecha"></div>
+      <div class="campo"><label>Importe</label><input type="number" id="pagoImporte" step="0.01"></div>
+      <div class="campo"><label>Medio</label>
+        <select id="pagoMedio">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Tarjeta">Tarjeta</option>
+        </select>
+      </div>
+      <div class="campo ancho"><label>Comentario</label><input type="text" id="pagoComentario"></div>
+    </div>
+    <div class="acciones">
+      <button class="accion" id="botonRegistraPago">Registrar pago</button>
+      <span class="aviso" id="avisoPago"></span>
+    </div>
+  </div>
+  <div class="dosColumnas">
+    <div class="bloque">
+      <h2 class="titulo">Saldos por cliente</h2>
+      <div class="envolturaTabla">
+        <table class="planilla">
+          <thead><tr>
+            <th>Cliente</th><th class="num">Vendido a cuenta</th><th class="num">Pagado</th>
+            <th class="num">Saldo</th><th>Impago más viejo</th><th class="num">Días</th>
+          </tr></thead>
+          <tbody id="cuerpoCuentaCorriente"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="bloque">
+      <h2 class="titulo">Últimos pagos</h2>
+      <div class="envolturaTabla">
+        <table class="planilla">
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Medio</th><th class="num">Importe</th><th>Comentario</th><th></th></tr></thead>
+          <tbody id="cuerpoPagos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaReposicion">
+  <h2 class="titulo marron">Panel de Reposición</h2>
+  <p class="bajada">Todo lo que está por debajo de la cantidad mínima, agrupado por proveedor y con una sugerencia de pedido para llevar el stock al doble del mínimo.</p>
+  <div class="acciones" style="margin-top:0;margin-bottom:14px">
+    <button class="accion marron" id="botonImprimePedido">Imprimir pedido</button>
+    <button class="suave" id="botonReposicionACompra">Pasar un proveedor a la pantalla de Compras</button>
+    <div class="campo" style="min-width:220px"><label>Proveedor a pasar</label><select id="reposicionProveedor"></select></div>
+    <span class="aviso" id="avisoReposicion"></span>
+  </div>
+  <div id="cuerpoReposicion"></div>
+</section>
+
+<section class="pantalla oculta" id="pantallaEstadisticas">
+  <h2 class="titulo">Estadísticas</h2>
+  <p class="bajada">El balance de caja es la diferencia entre cobranzas y compras. El margen real descuenta el costo de la mercadería efectivamente vendida, valuada a costo promedio ponderado de las compras.</p>
+  <div class="subBarra" id="subBarraEstadisticas">
+    <button data-panel="EstResumen" class="activo">Resumen</button>
+    <button data-panel="EstGraficos">Gráficos</button>
+    <button data-panel="EstComparacion">Comparación de períodos</button>
+  </div>
+
+  <div class="panelSecundario visible" id="panelEstResumen">
+    <div class="tarjetas" style="grid-template-columns:repeat(3,1fr)">
+      <div class="tarjeta"><div class="rotulo">Balance de Caja</div><div class="cifra" id="estCaja">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Capital en Bienes (a venta)</div><div class="cifra" id="estBienes">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Capital a costo histórico</div><div class="cifra" id="estCosto">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Ventas netas</div><div class="cifra" id="estVentas">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Costo de la mercadería vendida</div><div class="cifra" id="estCmv">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Margen real</div><div class="cifra" id="estMargen">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Patrimonio NETO</div><div class="cifra" id="estPatrimonio">$ 0,00</div></div>
+      <div class="tarjeta"><div class="rotulo">Margen sobre ventas</div><div class="cifra" id="estMargenPorciento">0</div></div>
+      <div class="tarjeta"><div class="rotulo">Deuda a cobrar</div><div class="cifra" id="estDeuda">$ 0,00</div></div>
+    </div>
+    <div class="dosColumnas">
+      <div class="bloque">
+        <h2 class="titulo">Importe vendido por cliente</h2>
+        <table class="miniTabla">
+          <thead><tr><th>Cliente</th><th class="num">Importe vendido</th></tr></thead>
+          <tbody id="cuerpoEstClientes"></tbody>
+        </table>
+      </div>
+      <div class="bloque marron">
+        <h2 class="titulo marron">Importe comprado por proveedor</h2>
+        <table class="miniTabla">
+          <thead><tr><th>Proveedor</th><th class="num">Importe en compras</th></tr></thead>
+          <tbody id="cuerpoEstProveedores"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="bloque verde">
+      <h2 class="titulo verde">Productos: movimiento, stock y margen</h2>
+      <div class="envolturaTabla">
+        <table class="planilla">
+          <thead><tr>
+            <th>Producto</th>
+            <th class="num">Cant. comprada</th><th class="num">Importe comprado</th>
+            <th class="num">Cant. vendida</th><th class="num">Importe vendido</th>
+            <th class="num">CMV</th><th class="num">Margen</th>
+            <th class="num">Stock</th>
+          </tr></thead>
+          <tbody id="cuerpoEstProductos"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="panelSecundario" id="panelEstGraficos">
+    <div class="bloque">
+      <h2 class="titulo">Ventas netas por mes</h2>
+      <div id="graficoMeses"></div>
+    </div>
+    <div class="dosColumnas">
+      <div class="bloque verde">
+        <h2 class="titulo verde">Ranking de productos por importe vendido</h2>
+        <div id="graficoProductos"></div>
+      </div>
+      <div class="bloque">
+        <h2 class="titulo">Participación por cliente</h2>
+        <div id="graficoClientes"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panelSecundario" id="panelEstComparacion">
+    <div class="cajaModo">
+      <div class="campo"><label>Períodos a comparar</label>
+        <select id="periodoComparacion">
+          <option value="mes">Mes actual contra el anterior</option>
+          <option value="mesAnio">Mes actual contra el mismo mes del año pasado</option>
+          <option value="anio">Año actual contra el anterior</option>
+        </select>
+      </div>
+      <button class="suave" id="botonComparar">Comparar</button>
+    </div>
+    <div class="envolturaTabla">
+      <table class="planilla filaComparada">
+        <thead><tr>
+          <th>Indicador</th><th class="num" id="rotuloPeriodoA">Período A</th>
+          <th class="num" id="rotuloPeriodoB">Período B</th><th class="num">Variación</th>
+        </tr></thead>
+        <tbody id="cuerpoComparacion"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="pantalla oculta" id="pantallaRespaldo">
+  <h2 class="titulo">Respaldo y mantenimiento</h2>
+  <p class="bajada">La base vive en el almacenamiento local del navegador. Además del respaldo manual, el sistema guarda copias automáticas de las últimas operaciones.</p>
+  <div class="bloque">
+    <h2 class="titulo">Respaldo manual</h2>
+    <div class="acciones" style="margin-top:0">
+      <button class="accion" id="botonExportaRespaldo">Descargar respaldo (JSON)</button>
+      <button class="suave" id="botonExportaMovimientos">Exportar movimientos (CSV)</button>
+      <button class="suave" id="botonExportaProductos">Exportar productos (CSV)</button>
+      <button class="suave" id="botonImportaRespaldo">Restaurar desde respaldo</button>
+      <input type="file" id="archivoRespaldo" accept=".json" style="display:none">
+    </div>
+    <div class="aviso" id="avisoUltimoRespaldo"></div>
+  </div>
+
+  <div class="bloque">
+    <h2 class="titulo">Importar desde CSV</h2>
+    <p class="bajada" style="margin-bottom:10px">El archivo debe tener encabezados en la primera fila. Separador punto y coma o coma. Para productos se reconocen Nombre, SKU, Precio de compra, Precio de venta, Cantidad mínima, Categoría y Proveedor.</p>
+    <div class="acciones" style="margin-top:0">
+      <div class="campo" style="min-width:200px"><label>Tipo de archivo</label>
+        <select id="tipoImportacion">
+          <option value="clientes">Clientes</option>
+          <option value="proveedores">Proveedores</option>
+          <option value="productos">Productos</option>
+        </select>
+      </div>
+      <button class="suave" id="botonImportaCsv">Elegir archivo CSV</button>
+      <input type="file" id="archivoCsv" accept=".csv,.txt" style="display:none">
+      <span class="aviso" id="avisoImportacion"></span>
+    </div>
+  </div>
+
+  <div class="bloque">
+    <h2 class="titulo">Copias automáticas</h2>
+    <ul class="listaRespaldos" id="listaRespaldosAuto"></ul>
+    <div class="acciones" style="margin-top:0">
+      <button class="suave" id="botonCopiaAhora">Guardar copia automática ahora</button>
+    </div>
+  </div>
+
+  <div class="bloque">
+    <h2 class="titulo">Numeración e impresión</h2>
+    <div class="formulario" style="grid-template-columns:repeat(3,1fr);max-width:none">
+      <div class="campo"><label>Prefijo de comprobante</label><input type="text" id="configPrefijo" placeholder="Ej: 0001-"></div>
+      <div class="campo"><label>Formato preferido</label>
+        <select id="configFormato">
+          <option value="A4">Remito A4</option>
+          <option value="ticket80">Ticket 80 mm</option>
+          <option value="ticket58">Ticket 58 mm</option>
+        </select>
+      </div>
+      <div class="campo"><label>Nombre del comercio</label><input type="text" id="configComercio"></div>
+    </div>
+    <div class="acciones">
+      <button class="accion" id="botonGuardaConfig">Guardar configuración</button>
+      <span class="aviso" id="avisoConfig"></span>
+    </div>
+  </div>
+
+  <div class="bloque">
+    <h2 class="titulo">Estado de la base</h2>
+    <table class="miniTabla">
+      <tbody id="cuerpoEstadoBase"></tbody>
+    </table>
+    <div class="acciones">
+      <button class="suave" id="botonCargaDemo">Cargar datos de ejemplo</button>
+      <button class="suave" id="botonVaciaTodo">Vaciar toda la base</button>
+      <span class="aviso" id="avisoRespaldo"></span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="pieNota">
+  <span>Mimetika · Gestión Venta y Stock · v02</span>
+  <span id="selloGuardado">Base local</span>
+</div>
+
+</div>
+
+<div id="comprobante"></div>
+
+<script>
+var CLAVE_ALMACEN = "mimetika.gestionVentaStock.v2";
+var CLAVE_COPIAS = "mimetika.gestionVentaStock.copias";
+var COPIAS_GUARDADAS = 5;
+var base = null;
+var pantallaEnUso = "Panel";
+var clienteEnEdicion = 0;
+var proveedorEnEdicion = 0;
+var productoEnEdicion = 0;
+var comprobanteEnEdicion = { venta: 0, compra: 0 };
+var renglones = { venta: 0, compra: 0 };
+var previaDePrecios = [];
+
+function baseVacia(){
+  var arranque = hoyIso();
+  return {
+    clientes: [ fichaPersona(1, arranque, "1-Consumidor FINAL", "Para clientes sin registro") ],
+    proveedores: [ fichaPersona(1, arranque, "1 - Sin PROVEEDOR", "Para compras sin proveedor definido") ],
+    productos: [],
+    movimientos: [],
+    pagos: [],
+    historialPrecios: [],
+    estados: ["ACTIVO", "Inactivo", "Suspendido"],
+    categorias: ["Sin categoría"],
+    config: { prefijo: "", formato: "A4", comercio: "", ultimoRespaldo: "" }
+  };
+}
+
+function fichaPersona(id, fecha, nombre, nota){
+  return {
+    id: id, fechaIngreso: fecha, nombre: nombre, direccion: "", localidad: "",
+    telefono: "", telefono2: "", mail: "", contacto: "", observaciones: nota
+  };
+}
+
+function leerBase(){
+  var guardado = null;
+  try{
+    guardado = window.localStorage.getItem(CLAVE_ALMACEN);
+  }catch(e){
+    guardado = null;
+  }
+  if(!guardado){ return baseVacia(); }
+  var recuperada = null;
+  try{
+    recuperada = JSON.parse(guardado);
+  }catch(e){
+    return baseVacia();
+  }
+  return normalizarBase(recuperada);
+}
+
+function normalizarBase(cruda){
+  var limpia = baseVacia();
+  if(!cruda || typeof cruda != "object"){ return limpia; }
+  if(cruda.clientes && cruda.clientes.length){ limpia.clientes = cruda.clientes; }
+  if(cruda.proveedores && cruda.proveedores.length){ limpia.proveedores = cruda.proveedores; }
+  if(cruda.productos){ limpia.productos = cruda.productos; }
+  if(cruda.movimientos){ limpia.movimientos = cruda.movimientos; }
+  if(cruda.pagos){ limpia.pagos = cruda.pagos; }
+  if(cruda.historialPrecios){ limpia.historialPrecios = cruda.historialPrecios; }
+  if(cruda.estados && cruda.estados.length){ limpia.estados = cruda.estados; }
+  if(cruda.categorias && cruda.categorias.length){ limpia.categorias = cruda.categorias; }
+  if(cruda.config){
+    if(cruda.config.prefijo){ limpia.config.prefijo = cruda.config.prefijo; }
+    if(cruda.config.formato){ limpia.config.formato = cruda.config.formato; }
+    if(cruda.config.comercio){ limpia.config.comercio = cruda.config.comercio; }
+    if(cruda.config.ultimoRespaldo){ limpia.config.ultimoRespaldo = cruda.config.ultimoRespaldo; }
+  }
+  var i;
+  var siguienteRenglon = 1;
+  for(i = 0; i < limpia.movimientos.length; i++){
+    if(Number(limpia.movimientos[i].idRenglon) >= siguienteRenglon){
+      siguienteRenglon = Number(limpia.movimientos[i].idRenglon) + 1;
+    }
+  }
+  for(i = 0; i < limpia.movimientos.length; i++){
+    var m = limpia.movimientos[i];
+    if(!m.medioPago){ m.medioPago = "Efectivo"; }
+    if(m.cobrado === undefined){ m.cobrado = true; }
+    if(!m.idRenglon){ m.idRenglon = siguienteRenglon; siguienteRenglon = siguienteRenglon + 1; }
+  }
+  for(i = 0; i < limpia.productos.length; i++){
+    if(limpia.productos[i].sku === undefined){ limpia.productos[i].sku = ""; }
+  }
+  return limpia;
+}
+
+function grabarBase(){
+  var sello = document.getElementById("selloGuardado");
+  try{
+    window.localStorage.setItem(CLAVE_ALMACEN, JSON.stringify(base));
+    sello.textContent = "Guardado " + horaDeAhora();
+  }catch(e){
+    sello.textContent = "No se pudo guardar en este navegador";
+  }
+}
+
+function leerCopias(){
+  var crudo = null;
+  try{
+    crudo = window.localStorage.getItem(CLAVE_COPIAS);
+  }catch(e){
+    return [];
+  }
+  if(!crudo){ return []; }
+  try{
+    var lista = JSON.parse(crudo);
+    if(lista && lista.length){ return lista; }
+  }catch(e){
+    return [];
+  }
+  return [];
+}
+
+function guardarCopiaAutomatica(motivo){
+  var lista = leerCopias();
+  lista.unshift({
+    fecha: hoyIso(),
+    hora: horaDeAhora(),
+    motivo: motivo,
+    renglones: base.movimientos.length,
+    contenido: JSON.stringify(base)
+  });
+  while(lista.length > COPIAS_GUARDADAS){ lista.pop(); }
+  try{
+    window.localStorage.setItem(CLAVE_COPIAS, JSON.stringify(lista));
+  }catch(e){
+    return false;
+  }
+  return true;
+}
+
+function dosDigitos(n){
+  if(n < 10){ return "0" + n; }
+  return "" + n;
+}
+
+function hoyIso(){
+  var d = new Date();
+  return d.getFullYear() + "-" + dosDigitos(d.getMonth() + 1) + "-" + dosDigitos(d.getDate());
+}
+
+function horaDeAhora(){
+  var d = new Date();
+  return dosDigitos(d.getHours()) + ":" + dosDigitos(d.getMinutes());
+}
+
+function fechaLinda(iso){
+  if(!iso){ return ""; }
+  var partes = ("" + iso).split("-");
+  if(partes.length != 3){ return iso; }
+  return partes[2] + "/" + partes[1] + "/" + partes[0];
+}
+
+function diasEntre(isoViejo, isoNuevo){
+  if(!isoViejo || !isoNuevo){ return 0; }
+  var a = new Date(isoViejo + "T00:00:00");
+  var b = new Date(isoNuevo + "T00:00:00");
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+function mesDe(iso){
+  if(!iso){ return ""; }
+  return ("" + iso).substring(0, 7);
+}
+
+function etiquetaMes(clave){
+  var nombres = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+  var partes = clave.split("-");
+  if(partes.length != 2){ return clave; }
+  return nombres[Number(partes[1]) - 1] + " " + partes[0].substring(2);
+}
+
+function primerDiaDelMes(iso){ return iso.substring(0, 7) + "-01"; }
+
+function ultimoDiaDelMes(iso){
+  var anio = Number(iso.substring(0, 4));
+  var mes = Number(iso.substring(5, 7));
+  var d = new Date(anio, mes, 0);
+  return anio + "-" + dosDigitos(mes) + "-" + dosDigitos(d.getDate());
+}
+
+function mesAnterior(iso){
+  var anio = Number(iso.substring(0, 4));
+  var mes = Number(iso.substring(5, 7)) - 1;
+  if(mes < 1){ mes = 12; anio = anio - 1; }
+  return anio + "-" + dosDigitos(mes) + "-01";
+}
+
+function pesos(valor){
+  var numero = Number(valor);
+  if(isNaN(numero)){ numero = 0; }
+  var negativo = numero < 0;
+  if(negativo){ numero = -numero; }
+  var redondeado = Math.round(numero * 100) / 100;
+  var entera = Math.floor(redondeado);
+  var centavos = Math.round((redondeado - entera) * 100);
+  if(centavos == 100){ entera = entera + 1; centavos = 0; }
+  var texto = separaMiles(entera) + "," + dosDigitos(centavos);
+  if(negativo){ return "-$ " + texto; }
+  return "$ " + texto;
+}
+
+function separaMiles(entero){
+  var crudo = "" + Math.abs(Math.floor(entero));
+  var salida = "";
+  var contador = 0;
+  var i;
+  for(i = crudo.length - 1; i >= 0; i--){
+    salida = crudo.charAt(i) + salida;
+    contador = contador + 1;
+    if(contador % 3 === 0 && i > 0){ salida = "." + salida; }
+  }
+  return salida;
+}
+
+function cantidadLinda(valor){
+  var numero = Number(valor);
+  if(isNaN(numero)){ numero = 0; }
+  if(Math.abs(numero - Math.round(numero)) < 0.0001){
+    if(numero < 0){ return "-" + separaMiles(Math.round(-numero)); }
+    return separaMiles(Math.round(numero));
+  }
+  var signo = numero < 0 ? "-" : "";
+  var absoluto = Math.abs(numero);
+  return signo + separaMiles(Math.floor(absoluto)) + "," + dosDigitos(Math.round((absoluto % 1) * 100));
+}
+
+function porcentajeLindo(valor){
+  var n = Number(valor);
+  if(isNaN(n) || !isFinite(n)){ return "—"; }
+  return (Math.round(n * 10) / 10) + " %";
+}
+
+function seguro(texto){
+  if(texto === null || texto === undefined){ return ""; }
+  var s = "" + texto;
+  s = s.split("&").join("&amp;");
+  s = s.split("<").join("&lt;");
+  s = s.split(">").join("&gt;");
+  s = s.split('"').join("&quot;");
+  return s;
+}
+
+function aNumero(valor){
+  var n = parseFloat(valor);
+  if(isNaN(n)){ return 0; }
+  return n;
+}
+
+function porId(lista, id){
+  var i;
+  for(i = 0; i < lista.length; i++){
+    if(lista[i].id == id){ return lista[i]; }
+  }
+  return null;
+}
+
+function idSiguiente(lista){
+  var mayor = 0;
+  var i;
+  for(i = 0; i < lista.length; i++){
+    if(Number(lista[i].id) > mayor){ mayor = Number(lista[i].id); }
+  }
+  return mayor + 1;
+}
+
+function proximoIdMovimiento(){
+  var mayor = 0;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(Number(base.movimientos[i].idMovimiento) > mayor){ mayor = Number(base.movimientos[i].idMovimiento); }
+  }
+  return mayor + 1;
+}
+
+function proximoIdRenglon(){
+  var mayor = 0;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(Number(base.movimientos[i].idRenglon) > mayor){ mayor = Number(base.movimientos[i].idRenglon); }
+  }
+  return mayor + 1;
+}
+
+function devueltoDelRenglon(idRenglon){
+  var suma = 0;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].tipo == "DEVOLUCION" && base.movimientos[i].idOrigen == idRenglon){
+      suma = suma + aNumero(base.movimientos[i].cantidad);
+    }
+  }
+  return suma;
+}
+
+function numeroComprobante(id){
+  return (base.config.prefijo || "") + id;
+}
+
+function totalesDelProducto(idProducto){
+  var comprado = 0;
+  var vendido = 0;
+  var devuelto = 0;
+  var importeCompra = 0;
+  var importeVenta = 0;
+  var importeDevuelto = 0;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.idProducto != idProducto){ continue; }
+    if(m.tipo == "COMPRA"){
+      comprado = comprado + aNumero(m.cantidad);
+      importeCompra = importeCompra + aNumero(m.total);
+    }else if(m.tipo == "DEVOLUCION"){
+      devuelto = devuelto + aNumero(m.cantidad);
+      importeDevuelto = importeDevuelto + aNumero(m.total);
+    }else{
+      vendido = vendido + aNumero(m.cantidad);
+      importeVenta = importeVenta + aNumero(m.total);
+    }
+  }
+  var costo = costoPromedio(idProducto);
+  var vendidoNeto = vendido - devuelto;
+  return {
+    comprado: comprado, vendido: vendido, devuelto: devuelto,
+    stock: comprado + devuelto - vendido,
+    importeCompra: importeCompra,
+    importeVenta: importeVenta,
+    importeDevuelto: importeDevuelto,
+    ventaNeta: importeVenta - importeDevuelto,
+    costoPromedio: costo,
+    cmv: vendidoNeto * costo,
+    margen: (importeVenta - importeDevuelto) - vendidoNeto * costo
+  };
+}
+
+function costoPromedio(idProducto){
+  var cantidad = 0;
+  var importe = 0;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.idProducto != idProducto || m.tipo != "COMPRA"){ continue; }
+    cantidad = cantidad + aNumero(m.cantidad);
+    importe = importe + aNumero(m.total);
+  }
+  if(cantidad > 0){ return importe / cantidad; }
+  var p = porId(base.productos, idProducto);
+  if(p){ return aNumero(p.precioCompra); }
+  return 0;
+}
+
+function stockDe(idProducto){
+  return totalesDelProducto(idProducto).stock;
+}
+
+function totalesDelCliente(idCliente){
+  var importe = 0;
+  var ultima = "";
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.idContraparte != idCliente){ continue; }
+    if(m.tipo == "VENTA"){
+      importe = importe + aNumero(m.total);
+      if(m.fecha > ultima){ ultima = m.fecha; }
+    }else if(m.tipo == "DEVOLUCION"){
+      importe = importe - aNumero(m.total);
+    }
+  }
+  return { importe: importe, ultima: ultima };
+}
+
+function totalesDelProveedor(idProveedor){
+  var importe = 0;
+  var ultima = "";
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.tipo != "COMPRA"){ continue; }
+    if(m.idContraparte != idProveedor){ continue; }
+    importe = importe + aNumero(m.total);
+    if(m.fecha > ultima){ ultima = m.fecha; }
+  }
+  return { importe: importe, ultima: ultima };
+}
+
+function cuentaDelCliente(idCliente){
+  var aCuenta = 0;
+  var masViejo = "";
+  var impagos = {};
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.idContraparte != idCliente){ continue; }
+    if(m.tipo == "VENTA" && m.cobrado === false){
+      aCuenta = aCuenta + aNumero(m.total);
+      impagos["n" + m.idMovimiento] = 1;
+      if(!masViejo || m.fecha < masViejo){ masViejo = m.fecha; }
+    }
+    if(m.tipo == "DEVOLUCION" && m.cobrado === false){
+      aCuenta = aCuenta - aNumero(m.total);
+    }
+  }
+  var pagado = 0;
+  for(i = 0; i < base.pagos.length; i++){
+    if(base.pagos[i].idCliente == idCliente){ pagado = pagado + aNumero(base.pagos[i].importe); }
+  }
+  var cuantos = 0;
+  var clave;
+  for(clave in impagos){
+    if(impagos.hasOwnProperty(clave)){ cuantos = cuantos + 1; }
+  }
+  var saldo = aCuenta - pagado;
+  return {
+    aCuenta: aCuenta, pagado: pagado, saldo: saldo,
+    masViejo: saldo > 0.009 ? masViejo : "",
+    dias: saldo > 0.009 && masViejo ? diasEntre(masViejo, hoyIso()) : 0,
+    impagos: saldo > 0.009 ? cuantos : 0
+  };
+}
+
+function deudaGeneral(){
+  var total = 0;
+  var impagos = 0;
+  var mora = 0;
+  var i;
+  for(i = 0; i < base.clientes.length; i++){
+    var c = cuentaDelCliente(base.clientes[i].id);
+    if(c.saldo > 0.009){
+      total = total + c.saldo;
+      impagos = impagos + c.impagos;
+      if(c.dias > mora){ mora = c.dias; }
+    }
+  }
+  return { total: total, impagos: impagos, mora: mora };
+}
+
+function resumenDePeriodo(desde, hasta){
+  var ventas = 0;
+  var devoluciones = 0;
+  var compras = 0;
+  var cmv = 0;
+  var unidades = 0;
+  var comprobantes = {};
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(desde && m.fecha < desde){ continue; }
+    if(hasta && m.fecha > hasta){ continue; }
+    var costo = costoPromedio(m.idProducto);
+    if(m.tipo == "VENTA"){
+      ventas = ventas + aNumero(m.total);
+      cmv = cmv + aNumero(m.cantidad) * costo;
+      unidades = unidades + aNumero(m.cantidad);
+      comprobantes["v" + m.idMovimiento] = 1;
+    }else if(m.tipo == "DEVOLUCION"){
+      devoluciones = devoluciones + aNumero(m.total);
+      cmv = cmv - aNumero(m.cantidad) * costo;
+      unidades = unidades - aNumero(m.cantidad);
+    }else{
+      compras = compras + aNumero(m.total);
+    }
+  }
+  var cuantos = 0;
+  var clave;
+  for(clave in comprobantes){
+    if(comprobantes.hasOwnProperty(clave)){ cuantos = cuantos + 1; }
+  }
+  var netas = ventas - devoluciones;
+  return {
+    ventas: ventas, devoluciones: devoluciones, netas: netas,
+    compras: compras, cmv: cmv, margen: netas - cmv,
+    unidades: unidades, comprobantes: cuantos,
+    ticketPromedio: cuantos ? netas / cuantos : 0
+  };
+}
+
+function balanceDeCaja(){
+  var cobrado = 0;
+  var pagadoAProveedores = 0;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.tipo == "VENTA" && m.cobrado !== false){ cobrado = cobrado + aNumero(m.total); }
+    if(m.tipo == "DEVOLUCION" && m.cobrado !== false){ cobrado = cobrado - aNumero(m.total); }
+    if(m.tipo == "COMPRA" && m.cobrado !== false){ pagadoAProveedores = pagadoAProveedores + aNumero(m.total); }
+  }
+  var pagos = 0;
+  for(i = 0; i < base.pagos.length; i++){ pagos = pagos + aNumero(base.pagos[i].importe); }
+  var general = resumenDePeriodo("", "");
+  return {
+    ventas: general.netas,
+    compras: general.compras,
+    cobranzas: cobrado + pagos,
+    pagos: pagadoAProveedores,
+    saldo: cobrado + pagos - pagadoAProveedores
+  };
+}
+
+function capitalEnBienes(){
+  var acumulado = 0;
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    acumulado = acumulado + stockDe(p.id) * aNumero(p.precioVenta);
+  }
+  return acumulado;
+}
+
+function capitalACosto(){
+  var acumulado = 0;
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    acumulado = acumulado + stockDe(p.id) * costoPromedio(p.id);
+  }
+  return acumulado;
+}
+
+function listaDeReposicion(){
+  var faltantes = [];
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    if(p.estado == "Inactivo"){ continue; }
+    var minima = aNumero(p.cantidadMinima);
+    if(minima <= 0){ continue; }
+    var existencia = stockDe(p.id);
+    if(existencia >= minima){ continue; }
+    faltantes.push({
+      producto: p,
+      stock: existencia,
+      minima: minima,
+      sugerido: Math.ceil(minima * 2 - existencia),
+      costo: aNumero(p.precioCompra)
+    });
+  }
+  return faltantes;
+}
+
+function productosBajoMinimo(){
+  return listaDeReposicion().length;
+}
+function mostrar(nombre){
+  var secciones = document.getElementsByClassName("pantalla");
+  var i;
+  for(i = 0; i < secciones.length; i++){
+    secciones[i].className = "pantalla oculta";
+  }
+  var destino = document.getElementById("pantalla" + nombre);
+  if(destino){ destino.className = "pantalla"; }
+  pantallaEnUso = nombre;
+  var botones = document.getElementById("barraNavegacion").getElementsByTagName("button");
+  for(i = 0; i < botones.length; i++){
+    var marca = botones[i].getAttribute("data-pantalla");
+    if(marca == nombre){ botones[i].className = "activo"; }
+    else{ botones[i].className = ""; }
+  }
+  if(nombre == "Panel"){ dibujarPanel(); }
+  if(nombre == "Clientes"){ pintaListadoClientes(); }
+  if(nombre == "Proveedores"){ pintaListadoProveedores(); }
+  if(nombre == "Productos"){ cargaFiltrosProducto(); pintaListadoProductos(); }
+  if(nombre == "Precios"){ prepararPantallaPrecios(); }
+  if(nombre == "Ventas"){ preparaPantallaVenta(); }
+  if(nombre == "Compras"){ preparaPantallaCompra(); }
+  if(nombre == "Movimientos"){ pintarMovimientos(); }
+  if(nombre == "CuentaCorriente"){ pintarCuentaCorriente(); }
+  if(nombre == "Reposicion"){ pintarReposicion(); }
+  if(nombre == "Estadisticas"){ pintarEstadisticas(); }
+  if(nombre == "Respaldo"){ resumenDeLaBase(); }
+  window.scrollTo(0, 0);
+}
+
+function mostrarSubPanel(grupo, cual){
+  var contenedor = document.getElementById("subBarra" + grupo);
+  var botones = contenedor.getElementsByTagName("button");
+  var i;
+  for(i = 0; i < botones.length; i++){
+    var marca = botones[i].getAttribute("data-panel");
+    var panel = document.getElementById("panel" + marca);
+    if(marca == cual){
+      botones[i].className = "activo";
+      panel.className = "panelSecundario visible";
+    }else{
+      botones[i].className = "";
+      panel.className = "panelSecundario";
+    }
+  }
+  if(cual == "EstGraficos"){ dibujarGraficos(); }
+  if(cual == "EstComparacion"){ compararPeriodos(); }
+  if(cual == "PreciosHistorial"){ pintarHistorialPrecios(); }
+}
+
+function ponerCifra(idElemento, valor, esPlata){
+  var nodo = document.getElementById(idElemento);
+  if(esPlata){ nodo.textContent = pesos(valor); }
+  else{ nodo.textContent = cantidadLinda(valor); }
+  if(valor < 0){ nodo.className = "cifra negativa"; }
+  else if(valor > 0){ nodo.className = "cifra positiva"; }
+  else{ nodo.className = "cifra"; }
+}
+
+function dibujarPanel(){
+  var caja = balanceDeCaja();
+  var bienes = capitalEnBienes();
+  var deuda = deudaGeneral();
+  var mes = resumenDePeriodo(primerDiaDelMes(hoyIso()), ultimoDiaDelMes(hoyIso()));
+  ponerCifra("panelCaja", caja.saldo, true);
+  ponerCifra("panelBienes", bienes, true);
+  ponerCifra("panelPatrimonio", caja.saldo + bienes, true);
+  ponerCifra("panelMargen", mes.margen, true);
+  ponerCifra("panelDeuda", deuda.total, true);
+  document.getElementById("panelComprobantes").textContent = "" + mes.comprobantes;
+  document.getElementById("panelRenglones").textContent = "" + base.movimientos.length;
+  var alertas = productosBajoMinimo();
+  var nodoAlerta = document.getElementById("panelAlertas");
+  nodoAlerta.textContent = "" + alertas;
+  if(alertas > 0){ nodoAlerta.className = "cifra negativa"; }
+  else{ nodoAlerta.className = "cifra"; }
+  pintaListasAuxiliares();
+  avisarPorRespaldoViejo();
+}
+
+function avisarPorRespaldoViejo(){
+  var nodo = document.getElementById("avisoRespaldoViejo");
+  var ultimo = base.config.ultimoRespaldo;
+  if(!base.movimientos.length){
+    nodo.className = "avisoFuerte apagado";
+    return;
+  }
+  if(!ultimo){
+    nodo.className = "avisoFuerte";
+    nodo.textContent = "Todavía no bajaste ningún respaldo de esta base. Conviene hacerlo desde la solapa Respaldo.";
+    return;
+  }
+  var dias = diasEntre(ultimo, hoyIso());
+  if(dias >= 7){
+    nodo.className = "avisoFuerte";
+    nodo.textContent = "Hace " + dias + " días que no bajás un respaldo. El último fue el " + fechaLinda(ultimo) + ".";
+  }else{
+    nodo.className = "avisoFuerte apagado";
+  }
+}
+
+function pintaListasAuxiliares(){
+  var listaEst = document.getElementById("listaEstados");
+  var filas = "";
+  var i;
+  for(i = 0; i < base.estados.length; i++){
+    filas = filas + '<li><span>' + seguro(base.estados[i]) + '</span>';
+    filas = filas + '<button class="mini peligro" data-quitaestado="' + i + '">Quitar</button></li>';
+  }
+  listaEst.innerHTML = filas;
+  var listaCat = document.getElementById("listaCategorias");
+  var otras = "";
+  for(i = 0; i < base.categorias.length; i++){
+    otras = otras + '<li><span>' + seguro(base.categorias[i]) + '</span>';
+    otras = otras + '<button class="mini peligro" data-quitacategoria="' + i + '">Quitar</button></li>';
+  }
+  listaCat.innerHTML = otras;
+}
+
+function opcionesDeLista(lista, elegido, conTodos, rotuloTodos){
+  var html = "";
+  if(conTodos){ html = '<option value="">' + rotuloTodos + "</option>"; }
+  var i;
+  for(i = 0; i < lista.length; i++){
+    var marca = (lista[i] == elegido) ? " selected" : "";
+    html = html + '<option value="' + seguro(lista[i]) + '"' + marca + ">" + seguro(lista[i]) + "</option>";
+  }
+  return html;
+}
+
+function opcionesDePersonas(lista, elegido, conTodos){
+  var html = "";
+  if(conTodos){ html = '<option value="">Todos</option>'; }
+  var i;
+  for(i = 0; i < lista.length; i++){
+    var marca = (lista[i].id == elegido) ? " selected" : "";
+    html = html + '<option value="' + lista[i].id + '"' + marca + ">" + seguro(lista[i].nombre) + "</option>";
+  }
+  return html;
+}
+
+function refrescarCatalogo(){
+  var html = "";
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    html = html + '<option value="' + seguro(etiquetaDeProducto(p)) + '"></option>';
+  }
+  document.getElementById("catalogoProductos").innerHTML = html;
+}
+
+function etiquetaDeProducto(p){
+  if(p.sku){ return p.id + " · " + p.nombre + " [" + p.sku + "]"; }
+  return p.id + " · " + p.nombre;
+}
+
+function productoDesdeTexto(texto){
+  var crudo = ("" + texto).replace(/^\s+|\s+$/g, "");
+  if(!crudo){ return null; }
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    if(etiquetaDeProducto(base.productos[i]) == crudo){ return base.productos[i]; }
+  }
+  var enMinuscula = crudo.toLowerCase();
+  for(i = 0; i < base.productos.length; i++){
+    if(base.productos[i].sku && ("" + base.productos[i].sku).toLowerCase() == enMinuscula){ return base.productos[i]; }
+  }
+  for(i = 0; i < base.productos.length; i++){
+    if(base.productos[i].nombre.toLowerCase() == enMinuscula){ return base.productos[i]; }
+  }
+  var soloNumero = crudo.split(" ")[0];
+  if(soloNumero && !isNaN(Number(soloNumero))){
+    var porNumero = porId(base.productos, Number(soloNumero));
+    if(porNumero){ return porNumero; }
+  }
+  var parciales = [];
+  for(i = 0; i < base.productos.length; i++){
+    if(base.productos[i].nombre.toLowerCase().indexOf(enMinuscula) >= 0){ parciales.push(base.productos[i]); }
+  }
+  if(parciales.length == 1){ return parciales[0]; }
+  return null;
+}
+
+function pintaListadoClientes(){
+  var texto = document.getElementById("buscaCliente").value.toLowerCase();
+  var cuerpo = document.getElementById("cuerpoClientes");
+  var filas = "";
+  var mostrados = 0;
+  var totalGeneral = 0;
+  var i;
+  for(i = 0; i < base.clientes.length; i++){
+    var c = base.clientes[i];
+    var bolsa = (c.nombre + " " + c.localidad + " " + c.mail + " " + c.direccion + " " + c.contacto).toLowerCase();
+    if(texto && bolsa.indexOf(texto) < 0){ continue; }
+    var resumen = totalesDelCliente(c.id);
+    var cuenta = cuentaDelCliente(c.id);
+    totalGeneral = totalGeneral + resumen.importe;
+    mostrados = mostrados + 1;
+    filas = filas + "<tr>";
+    filas = filas + '<td class="num">' + c.id + "</td>";
+    filas = filas + "<td>" + fechaLinda(c.fechaIngreso) + "</td>";
+    filas = filas + "<td><strong>" + seguro(c.nombre) + "</strong></td>";
+    filas = filas + "<td>" + seguro(c.direccion) + "</td>";
+    filas = filas + "<td>" + seguro(c.localidad) + "</td>";
+    filas = filas + "<td>" + seguro(c.telefono) + "</td>";
+    filas = filas + "<td>" + seguro(c.mail) + "</td>";
+    filas = filas + "<td>" + seguro(c.contacto) + "</td>";
+    filas = filas + '<td class="num">' + pesos(resumen.importe) + "</td>";
+    filas = filas + '<td class="num">' + (cuenta.saldo > 0.009 ? pesos(cuenta.saldo) : "") + "</td>";
+    filas = filas + "<td>" + fechaLinda(resumen.ultima) + "</td>";
+    filas = filas + "<td>" + seguro(c.observaciones) + "</td>";
+    filas = filas + '<td><button class="mini" data-editacliente="' + c.id + '">Editar</button>';
+    if(c.id != 1){ filas = filas + '<button class="mini peligro" data-borracliente="' + c.id + '">Borrar</button>'; }
+    filas = filas + "</td></tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="13">Sin clientes para mostrar.</td></tr>'; }
+  cuerpo.innerHTML = filas;
+  document.getElementById("pieClientes").textContent =
+    mostrados + " cliente(s) en pantalla · total vendido " + pesos(totalGeneral);
+}
+
+function abrirFichaCliente(id){
+  clienteEnEdicion = id ? Number(id) : 0;
+  var ficha = clienteEnEdicion ? porId(base.clientes, clienteEnEdicion) : null;
+  document.getElementById("tituloFichaCliente").textContent = ficha ? "Editar Cliente" : "Nuevo Cliente";
+  document.getElementById("cliId").value = ficha ? ficha.id : idSiguiente(base.clientes);
+  document.getElementById("cliFecha").value = ficha ? ficha.fechaIngreso : hoyIso();
+  document.getElementById("cliNombre").value = ficha ? ficha.nombre : "";
+  document.getElementById("cliDireccion").value = ficha ? ficha.direccion : "";
+  document.getElementById("cliLocalidad").value = ficha ? ficha.localidad : "";
+  document.getElementById("cliTelefono").value = ficha ? ficha.telefono : "";
+  document.getElementById("cliTelefono2").value = ficha ? ficha.telefono2 : "";
+  document.getElementById("cliMail").value = ficha ? ficha.mail : "";
+  document.getElementById("cliContacto").value = ficha ? ficha.contacto : "";
+  document.getElementById("cliObservaciones").value = ficha ? ficha.observaciones : "";
+  document.getElementById("botonGuardaCliente").textContent = ficha ? "Guardar cambios" : "Ingresa el Nuevo Cliente";
+  document.getElementById("avisoCliente").textContent = "";
+  mostrar("NuevoCliente");
+}
+
+function guardaCliente(){
+  var nombre = document.getElementById("cliNombre").value.replace(/^\s+|\s+$/g, "");
+  if(!nombre){
+    document.getElementById("avisoCliente").textContent = "El nombre es obligatorio.";
+    return;
+  }
+  var ficha = clienteEnEdicion ? porId(base.clientes, clienteEnEdicion) : null;
+  if(!ficha){
+    ficha = fichaPersona(idSiguiente(base.clientes), hoyIso(), nombre, "");
+    base.clientes.push(ficha);
+  }
+  ficha.nombre = nombre;
+  ficha.fechaIngreso = document.getElementById("cliFecha").value || hoyIso();
+  ficha.direccion = document.getElementById("cliDireccion").value;
+  ficha.localidad = document.getElementById("cliLocalidad").value;
+  ficha.telefono = document.getElementById("cliTelefono").value;
+  ficha.telefono2 = document.getElementById("cliTelefono2").value;
+  ficha.mail = document.getElementById("cliMail").value;
+  ficha.contacto = document.getElementById("cliContacto").value;
+  ficha.observaciones = document.getElementById("cliObservaciones").value;
+  clienteEnEdicion = 0;
+  grabarBase();
+  mostrar("Clientes");
+}
+
+function borrarCliente(id){
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].tipo != "COMPRA" && base.movimientos[i].idContraparte == id){
+      window.alert("Ese cliente tiene ventas registradas. No se puede borrar sin perder el histórico.");
+      return;
+    }
+  }
+  if(!window.confirm("¿Borrar definitivamente este cliente?")){ return; }
+  var quedan = [];
+  for(i = 0; i < base.clientes.length; i++){
+    if(base.clientes[i].id != id){ quedan.push(base.clientes[i]); }
+  }
+  base.clientes = quedan;
+  grabarBase();
+  pintaListadoClientes();
+}
+
+function pintaListadoProveedores(){
+  var texto = document.getElementById("buscaProveedor").value.toLowerCase();
+  var cuerpo = document.getElementById("cuerpoProveedores");
+  var filas = "";
+  var mostrados = 0;
+  var totalGeneral = 0;
+  var i;
+  for(i = 0; i < base.proveedores.length; i++){
+    var p = base.proveedores[i];
+    var bolsa = (p.nombre + " " + p.localidad + " " + p.mail + " " + p.direccion + " " + p.contacto).toLowerCase();
+    if(texto && bolsa.indexOf(texto) < 0){ continue; }
+    var resumen = totalesDelProveedor(p.id);
+    totalGeneral = totalGeneral + resumen.importe;
+    mostrados = mostrados + 1;
+    filas = filas + "<tr>";
+    filas = filas + '<td class="num">' + p.id + "</td>";
+    filas = filas + "<td>" + fechaLinda(p.fechaIngreso) + "</td>";
+    filas = filas + "<td><strong>" + seguro(p.nombre) + "</strong></td>";
+    filas = filas + "<td>" + seguro(p.direccion) + "</td>";
+    filas = filas + "<td>" + seguro(p.localidad) + "</td>";
+    filas = filas + "<td>" + seguro(p.telefono) + "</td>";
+    filas = filas + "<td>" + seguro(p.telefono2) + "</td>";
+    filas = filas + "<td>" + seguro(p.mail) + "</td>";
+    filas = filas + "<td>" + seguro(p.contacto) + "</td>";
+    filas = filas + '<td class="num">' + pesos(resumen.importe) + "</td>";
+    filas = filas + "<td>" + fechaLinda(resumen.ultima) + "</td>";
+    filas = filas + "<td>" + seguro(p.observaciones) + "</td>";
+    filas = filas + '<td><button class="mini" data-editaproveedor="' + p.id + '">Editar</button>';
+    if(p.id != 1){ filas = filas + '<button class="mini peligro" data-borraproveedor="' + p.id + '">Borrar</button>'; }
+    filas = filas + "</td></tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="13">Sin proveedores para mostrar.</td></tr>'; }
+  cuerpo.innerHTML = filas;
+  document.getElementById("pieProveedores").textContent =
+    mostrados + " proveedor(es) en pantalla · total comprado " + pesos(totalGeneral);
+}
+
+function abrirFichaProveedor(id){
+  proveedorEnEdicion = id ? Number(id) : 0;
+  var f = proveedorEnEdicion ? porId(base.proveedores, proveedorEnEdicion) : null;
+  document.getElementById("tituloFichaProveedor").textContent = f ? "Editar Proveedor" : "Nuevo Proveedor";
+  document.getElementById("provId").value = f ? f.id : idSiguiente(base.proveedores);
+  document.getElementById("provFecha").value = f ? f.fechaIngreso : hoyIso();
+  document.getElementById("provNombre").value = f ? f.nombre : "";
+  document.getElementById("provDireccion").value = f ? f.direccion : "";
+  document.getElementById("provLocalidad").value = f ? f.localidad : "";
+  document.getElementById("provTelefono").value = f ? f.telefono : "";
+  document.getElementById("provTelefono2").value = f ? f.telefono2 : "";
+  document.getElementById("provMail").value = f ? f.mail : "";
+  document.getElementById("provContacto").value = f ? f.contacto : "";
+  document.getElementById("provObservaciones").value = f ? f.observaciones : "";
+  document.getElementById("botonGuardaProveedor").textContent = f ? "Guardar cambios" : "Ingresa el Nuevo Proveedor";
+  document.getElementById("avisoProveedor").textContent = "";
+  mostrar("NuevoProveedor");
+}
+
+function guardarProveedor(){
+  var nombre = document.getElementById("provNombre").value.replace(/^\s+|\s+$/g, "");
+  if(!nombre){
+    document.getElementById("avisoProveedor").textContent = "El nombre es obligatorio.";
+    return;
+  }
+  var f = proveedorEnEdicion ? porId(base.proveedores, proveedorEnEdicion) : null;
+  if(!f){
+    f = fichaPersona(idSiguiente(base.proveedores), hoyIso(), nombre, "");
+    base.proveedores.push(f);
+  }
+  f.nombre = nombre;
+  f.fechaIngreso = document.getElementById("provFecha").value || hoyIso();
+  f.direccion = document.getElementById("provDireccion").value;
+  f.localidad = document.getElementById("provLocalidad").value;
+  f.telefono = document.getElementById("provTelefono").value;
+  f.telefono2 = document.getElementById("provTelefono2").value;
+  f.mail = document.getElementById("provMail").value;
+  f.contacto = document.getElementById("provContacto").value;
+  f.observaciones = document.getElementById("provObservaciones").value;
+  proveedorEnEdicion = 0;
+  grabarBase();
+  mostrar("Proveedores");
+}
+
+function borrarProveedor(id){
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].tipo == "COMPRA" && base.movimientos[i].idContraparte == id){
+      window.alert("Ese proveedor tiene compras registradas. No se puede borrar sin perder el histórico.");
+      return;
+    }
+  }
+  for(i = 0; i < base.productos.length; i++){
+    if(base.productos[i].idProveedor == id){
+      window.alert("Hay productos asociados a ese proveedor. Cambiá el proveedor de esos productos antes de borrarlo.");
+      return;
+    }
+  }
+  if(!window.confirm("¿Borrar definitivamente este proveedor?")){ return; }
+  var quedan = [];
+  for(i = 0; i < base.proveedores.length; i++){
+    if(base.proveedores[i].id != id){ quedan.push(base.proveedores[i]); }
+  }
+  base.proveedores = quedan;
+  grabarBase();
+  pintaListadoProveedores();
+}
+
+function cargaFiltrosProducto(){
+  var est = document.getElementById("filtroEstado");
+  var cat = document.getElementById("filtroCategoria");
+  var prov = document.getElementById("filtroProveedorProd");
+  var guardadoEst = est.value;
+  var guardadoCat = cat.value;
+  var guardadoProv = prov.value;
+  est.innerHTML = opcionesDeLista(base.estados, guardadoEst, true, "Todos");
+  cat.innerHTML = opcionesDeLista(base.categorias, guardadoCat, true, "Todas");
+  prov.innerHTML = opcionesDePersonas(base.proveedores, guardadoProv, true);
+}
+
+function pintaListadoProductos(){
+  var texto = document.getElementById("buscaProducto").value.toLowerCase();
+  var estadoFiltro = document.getElementById("filtroEstado").value;
+  var categoriaFiltro = document.getElementById("filtroCategoria").value;
+  var proveedorFiltro = document.getElementById("filtroProveedorProd").value;
+  var cuerpo = document.getElementById("cuerpoProductos");
+  var filas = "";
+  var mostrados = 0;
+  var capital = 0;
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    var bolsa = (p.nombre + " " + p.descripcion + " " + (p.sku || "")).toLowerCase();
+    if(texto && bolsa.indexOf(texto) < 0){ continue; }
+    if(estadoFiltro && p.estado != estadoFiltro){ continue; }
+    if(categoriaFiltro && p.categoria != categoriaFiltro){ continue; }
+    if(proveedorFiltro && p.idProveedor != proveedorFiltro){ continue; }
+    var t = totalesDelProducto(p.id);
+    var valorStock = t.stock * aNumero(p.precioVenta);
+    capital = capital + valorStock;
+    mostrados = mostrados + 1;
+    var bajo = (aNumero(p.cantidadMinima) > 0 && t.stock < aNumero(p.cantidadMinima) && p.estado != "Inactivo");
+    var proveedor = porId(base.proveedores, p.idProveedor);
+    var claseEstado = "chip";
+    if(p.estado == "ACTIVO"){ claseEstado = "chip activo"; }
+    if(p.estado == "Inactivo"){ claseEstado = "chip inactivo"; }
+    if(p.estado == "Suspendido"){ claseEstado = "chip suspendido"; }
+    filas = filas + (bajo ? '<tr class="bajoMinimo">' : "<tr>");
+    filas = filas + '<td class="num">' + p.id + "</td>";
+    filas = filas + "<td>" + seguro(p.sku || "") + "</td>";
+    filas = filas + "<td><strong>" + seguro(p.nombre) + "</strong></td>";
+    filas = filas + '<td><span class="' + claseEstado + '">' + seguro(p.estado) + "</span></td>";
+    filas = filas + "<td>" + seguro(proveedor ? proveedor.nombre : "") + "</td>";
+    filas = filas + "<td>" + seguro(p.categoria) + "</td>";
+    filas = filas + '<td class="num">' + cantidadLinda(p.cantidadMinima) + "</td>";
+    filas = filas + '<td class="num">' + pesos(p.precioCompra) + "</td>";
+    filas = filas + '<td class="num">' + pesos(t.costoPromedio) + "</td>";
+    filas = filas + '<td class="num">' + pesos(p.precioVenta) + "</td>";
+    filas = filas + '<td class="num">' + cantidadLinda(t.comprado) + "</td>";
+    filas = filas + '<td class="num">' + cantidadLinda(t.vendido) + "</td>";
+    filas = filas + '<td class="num">' + cantidadLinda(t.devuelto) + "</td>";
+    filas = filas + '<td class="num"><strong>' + cantidadLinda(t.stock) + "</strong></td>";
+    filas = filas + '<td class="num">' + pesos(valorStock) + "</td>";
+    filas = filas + '<td class="num">' + pesos(t.stock * t.costoPromedio) + "</td>";
+    filas = filas + '<td><button class="mini" data-editaproducto="' + p.id + '">Editar</button>';
+    filas = filas + '<button class="mini peligro" data-borraproducto="' + p.id + '">Borrar</button></td>';
+    filas = filas + "</tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="17">Sin productos para mostrar.</td></tr>'; }
+  cuerpo.innerHTML = filas;
+  document.getElementById("pieProductos").textContent =
+    mostrados + " producto(s) en pantalla · capital a precio de venta " + pesos(capital)
+    + " · bajo mínimo " + productosBajoMinimo();
+}
+
+function abrirFichaProducto(id){
+  productoEnEdicion = id ? Number(id) : 0;
+  var p = productoEnEdicion ? porId(base.productos, productoEnEdicion) : null;
+  document.getElementById("tituloFichaProducto").textContent = p ? "Editar Producto" : "Nuevo Producto";
+  document.getElementById("proId").value = p ? p.id : idSiguiente(base.productos);
+  document.getElementById("proFecha").value = p ? p.fechaIngreso : hoyIso();
+  document.getElementById("proNombre").value = p ? p.nombre : "";
+  document.getElementById("proSku").value = p ? (p.sku || "") : "";
+  document.getElementById("proEstado").innerHTML = opcionesDeLista(base.estados, p ? p.estado : base.estados[0], false, "");
+  document.getElementById("proCategoria").innerHTML = opcionesDeLista(base.categorias, p ? p.categoria : base.categorias[0], false, "");
+  document.getElementById("proProveedor").innerHTML = opcionesDePersonas(base.proveedores, p ? p.idProveedor : 1, false);
+  document.getElementById("proMinima").value = p ? p.cantidadMinima : 0;
+  document.getElementById("proPrecioCompra").value = p ? p.precioCompra : 0;
+  document.getElementById("proPrecioVenta").value = p ? p.precioVenta : 0;
+  document.getElementById("proDescripcion").value = p ? p.descripcion : "";
+  document.getElementById("botonGuardaProducto").textContent = p ? "Guardar cambios" : "Ingresa el Nuevo Producto";
+  document.getElementById("avisoProducto").textContent = "";
+  mostrar("NuevoProducto");
+}
+
+function anotarPrecio(producto, motivo){
+  base.historialPrecios.push({
+    idProducto: producto.id,
+    producto: producto.nombre,
+    fecha: hoyIso(),
+    hora: horaDeAhora(),
+    precioCompra: aNumero(producto.precioCompra),
+    precioVenta: aNumero(producto.precioVenta),
+    motivo: motivo
+  });
+}
+
+function guardaProducto(){
+  var nombre = document.getElementById("proNombre").value.replace(/^\s+|\s+$/g, "");
+  if(!nombre){
+    document.getElementById("avisoProducto").textContent = "El nombre es obligatorio.";
+    return;
+  }
+  var p = productoEnEdicion ? porId(base.productos, productoEnEdicion) : null;
+  var esNuevo = false;
+  if(!p){
+    p = { id: idSiguiente(base.productos), fechaIngreso: hoyIso() };
+    base.productos.push(p);
+    esNuevo = true;
+  }
+  var compraAntes = aNumero(p.precioCompra);
+  var ventaAntes = aNumero(p.precioVenta);
+  p.nombre = nombre;
+  p.sku = document.getElementById("proSku").value.replace(/^\s+|\s+$/g, "");
+  p.fechaIngreso = document.getElementById("proFecha").value || hoyIso();
+  p.estado = document.getElementById("proEstado").value;
+  p.categoria = document.getElementById("proCategoria").value;
+  p.idProveedor = Number(document.getElementById("proProveedor").value);
+  p.cantidadMinima = aNumero(document.getElementById("proMinima").value);
+  p.precioCompra = aNumero(document.getElementById("proPrecioCompra").value);
+  p.precioVenta = aNumero(document.getElementById("proPrecioVenta").value);
+  p.descripcion = document.getElementById("proDescripcion").value;
+  if(esNuevo){ anotarPrecio(p, "Alta del producto"); }
+  else if(compraAntes != p.precioCompra || ventaAntes != p.precioVenta){ anotarPrecio(p, "Edición manual"); }
+  productoEnEdicion = 0;
+  grabarBase();
+  refrescarCatalogo();
+  mostrar("Productos");
+}
+
+function borrarProducto(id){
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].idProducto == id){
+      window.alert("Ese producto figura en movimientos registrados. Marcalo como Inactivo en lugar de borrarlo.");
+      return;
+    }
+  }
+  if(!window.confirm("¿Borrar definitivamente este producto?")){ return; }
+  var quedan = [];
+  for(i = 0; i < base.productos.length; i++){
+    if(base.productos[i].id != id){ quedan.push(base.productos[i]); }
+  }
+  base.productos = quedan;
+  grabarBase();
+  refrescarCatalogo();
+  pintaListadoProductos();
+}
+
+function prepararPantallaPrecios(){
+  cargarAlcanceDePrecios();
+  document.getElementById("productoHistorial").innerHTML =
+    '<option value="">Todos los productos</option>' + opcionesDeProductosComoLista();
+  pintarVistaPreviaPrecios();
+}
+
+function opcionesDeProductosComoLista(){
+  var html = "";
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    html = html + '<option value="' + base.productos[i].id + '">' + seguro(base.productos[i].nombre) + "</option>";
+  }
+  return html;
+}
+
+function cargarAlcanceDePrecios(){
+  var alcance = document.getElementById("precioAlcance").value;
+  var selector = document.getElementById("precioAlcanceValor");
+  if(alcance == "categoria"){
+    selector.innerHTML = opcionesDeLista(base.categorias, "", false, "");
+    selector.disabled = false;
+  }else if(alcance == "proveedor"){
+    selector.innerHTML = opcionesDePersonas(base.proveedores, "", false);
+    selector.disabled = false;
+  }else{
+    selector.innerHTML = '<option value="">Todo el catálogo</option>';
+    selector.disabled = true;
+  }
+}
+
+function productosDelAlcance(){
+  var alcance = document.getElementById("precioAlcance").value;
+  var valor = document.getElementById("precioAlcanceValor").value;
+  var elegidos = [];
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    if(alcance == "categoria" && p.categoria != valor){ continue; }
+    if(alcance == "proveedor" && p.idProveedor != valor){ continue; }
+    elegidos.push(p);
+  }
+  return elegidos;
+}
+
+function redondearPrecio(valor, paso){
+  if(!paso){ return Math.round(valor * 100) / 100; }
+  return Math.round(valor / paso) * paso;
+}
+
+function pintarVistaPreviaPrecios(){
+  var elegidos = productosDelAlcance();
+  var campo = document.getElementById("precioCampo").value;
+  var porcentaje = aNumero(document.getElementById("precioPorcentaje").value);
+  var paso = aNumero(document.getElementById("precioRedondeo").value);
+  var factor = 1 + porcentaje / 100;
+  previaDePrecios = [];
+  var filas = "";
+  var i;
+  for(i = 0; i < elegidos.length; i++){
+    var p = elegidos[i];
+    var compraNueva = aNumero(p.precioCompra);
+    var ventaNueva = aNumero(p.precioVenta);
+    if(campo == "compra" || campo == "ambos"){ compraNueva = redondearPrecio(aNumero(p.precioCompra) * factor, paso); }
+    if(campo == "venta" || campo == "ambos"){ ventaNueva = redondearPrecio(aNumero(p.precioVenta) * factor, paso); }
+    previaDePrecios.push({ id: p.id, compra: compraNueva, venta: ventaNueva });
+    filas = filas + "<tr>";
+    filas = filas + '<td class="num">' + p.id + "</td>";
+    filas = filas + "<td>" + seguro(p.nombre) + "</td>";
+    filas = filas + '<td class="num viejo">' + pesos(p.precioCompra) + "</td>";
+    filas = filas + '<td class="num nuevo">' + pesos(compraNueva) + "</td>";
+    filas = filas + '<td class="num viejo">' + pesos(p.precioVenta) + "</td>";
+    filas = filas + '<td class="num nuevo">' + pesos(ventaNueva) + "</td>";
+    filas = filas + "</tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="6">No hay productos en ese alcance.</td></tr>'; }
+  document.getElementById("cuerpoVistaPrecios").innerHTML = filas;
+  document.getElementById("avisoPrecios").textContent =
+    previaDePrecios.length + " producto(s) alcanzados por el cambio.";
+}
+
+function aplicarPrecios(){
+  if(!previaDePrecios.length){
+    document.getElementById("avisoPrecios").textContent = "No hay nada para aplicar.";
+    return;
+  }
+  if(!window.confirm("Se van a modificar " + previaDePrecios.length + " producto(s). ¿Aplicar?")){ return; }
+  var porcentaje = aNumero(document.getElementById("precioPorcentaje").value);
+  var cambiados = 0;
+  var i;
+  for(i = 0; i < previaDePrecios.length; i++){
+    var linea = previaDePrecios[i];
+    var p = porId(base.productos, linea.id);
+    if(!p){ continue; }
+    if(aNumero(p.precioCompra) == linea.compra && aNumero(p.precioVenta) == linea.venta){ continue; }
+    p.precioCompra = linea.compra;
+    p.precioVenta = linea.venta;
+    anotarPrecio(p, "Actualización masiva " + porcentaje + " %");
+    cambiados = cambiados + 1;
+  }
+  grabarBase();
+  guardarCopiaAutomatica("Actualización de precios");
+  pintarVistaPreviaPrecios();
+  document.getElementById("avisoPrecios").textContent = cambiados + " producto(s) actualizados.";
+}
+
+function pintarHistorialPrecios(){
+  var elegido = document.getElementById("productoHistorial").value;
+  var filas = "";
+  var cuantos = 0;
+  var i;
+  for(i = base.historialPrecios.length - 1; i >= 0; i--){
+    var h = base.historialPrecios[i];
+    if(elegido && h.idProducto != elegido){ continue; }
+    cuantos = cuantos + 1;
+    filas = filas + "<tr>";
+    filas = filas + "<td>" + fechaLinda(h.fecha) + " " + seguro(h.hora || "") + "</td>";
+    filas = filas + "<td>" + seguro(h.producto) + "</td>";
+    filas = filas + '<td class="num">' + pesos(h.precioCompra) + "</td>";
+    filas = filas + '<td class="num">' + pesos(h.precioVenta) + "</td>";
+    filas = filas + "<td>" + seguro(h.motivo) + "</td>";
+    filas = filas + "</tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="5">Todavía no hay cambios de precio registrados.</td></tr>'; }
+  document.getElementById("cuerpoHistorialPrecios").innerHTML = filas;
+  document.getElementById("pieHistorial").textContent = cuantos + " registro(s) de precio.";
+}
+function armarFilasDeCarga(prefijo, idCuerpo, cantidad){
+  var cuerpo = document.getElementById(idCuerpo);
+  cuerpo.innerHTML = "";
+  renglones[prefijo] = 0;
+  var f;
+  for(f = 0; f < cantidad; f++){ agregarRenglon(prefijo, idCuerpo); }
+  recalcularCarga(prefijo);
+}
+
+function agregarRenglon(prefijo, idCuerpo){
+  var cuerpo = document.getElementById(idCuerpo || (prefijo == "venta" ? "cuerpoVenta" : "cuerpoCompra"));
+  var f = renglones[prefijo];
+  var fila = document.createElement("tr");
+  var html = "";
+  html = html + '<td><input type="text" list="catalogoProductos" id="' + prefijo + 'Prod' + f + '" placeholder="Nombre, código o SKU"></td>';
+  html = html + '<td><input type="number" step="0.01" id="' + prefijo + 'Precio' + f + '" value=""></td>';
+  html = html + '<td><input type="number" step="1" id="' + prefijo + 'Cant' + f + '" value=""></td>';
+  html = html + '<td class="stockCelda" id="' + prefijo + 'Sub' + f + '">$ 0,00</td>';
+  html = html + '<td class="stockCelda" id="' + prefijo + 'Stock' + f + '">\u2014</td>';
+  fila.innerHTML = html;
+  cuerpo.appendChild(fila);
+  renglones[prefijo] = f + 1;
+  conectarFila(prefijo, f);
+  contarRenglones(prefijo);
+}
+
+function conectarFila(prefijo, fila){
+  var campoProducto = document.getElementById(prefijo + "Prod" + fila);
+  campoProducto.onchange = function(){ traerPrecio(prefijo, fila); };
+  campoProducto.onblur = function(){ traerPrecio(prefijo, fila); };
+  document.getElementById(prefijo + "Precio" + fila).oninput = function(){ recalcularCarga(prefijo); };
+  document.getElementById(prefijo + "Cant" + fila).oninput = function(){ recalcularCarga(prefijo); };
+}
+
+function contarRenglones(prefijo){
+  var nodo = document.getElementById("contadorRenglones" + (prefijo == "venta" ? "Venta" : "Compra"));
+  if(nodo){ nodo.textContent = renglones[prefijo] + " renglón(es) en pantalla"; }
+}
+
+function traerPrecio(prefijo, fila){
+  var campoProducto = document.getElementById(prefijo + "Prod" + fila);
+  var campoPrecio = document.getElementById(prefijo + "Precio" + fila);
+  var campoCantidad = document.getElementById(prefijo + "Cant" + fila);
+  if(!campoProducto.value){
+    campoPrecio.value = "";
+    recalcularCarga(prefijo);
+    return;
+  }
+  var p = productoDesdeTexto(campoProducto.value);
+  if(!p){
+    campoPrecio.value = "";
+    campoProducto.className = "sinStock";
+    recalcularCarga(prefijo);
+    return;
+  }
+  campoProducto.className = "";
+  campoProducto.value = etiquetaDeProducto(p);
+  campoPrecio.value = (prefijo == "venta") ? p.precioVenta : p.precioCompra;
+  if(!campoCantidad.value){ campoCantidad.value = 1; }
+  recalcularCarga(prefijo);
+}
+
+function recalcularCarga(prefijo){
+  var esVenta = (prefijo == "venta");
+  var total = 0;
+  var f;
+  for(f = 0; f < renglones[prefijo]; f++){
+    var campoProducto = document.getElementById(prefijo + "Prod" + f);
+    if(!campoProducto){ continue; }
+    var p = productoDesdeTexto(campoProducto.value);
+    var precio = aNumero(document.getElementById(prefijo + "Precio" + f).value);
+    var cantidad = aNumero(document.getElementById(prefijo + "Cant" + f).value);
+    var celdaSub = document.getElementById(prefijo + "Sub" + f);
+    var celdaStock = document.getElementById(prefijo + "Stock" + f);
+    var campoCantidad = document.getElementById(prefijo + "Cant" + f);
+    if(!p){
+      celdaSub.textContent = "$ 0,00";
+      celdaStock.textContent = "\u2014";
+      celdaStock.className = "stockCelda";
+      campoCantidad.className = "";
+      continue;
+    }
+    var subtotal = precio * cantidad;
+    total = total + subtotal;
+    celdaSub.textContent = pesos(subtotal);
+    var existencia = stockDe(p.id);
+    celdaStock.textContent = cantidadLinda(existencia);
+    if(esVenta && cantidad > existencia){
+      celdaStock.className = "stockCelda sinStock";
+      campoCantidad.className = "sinStock";
+    }else{
+      celdaStock.className = "stockCelda";
+      campoCantidad.className = "";
+    }
+  }
+  document.getElementById(prefijo + "Total").textContent = pesos(total);
+  return total;
+}
+
+function preparaPantallaVenta(){
+  refrescarCatalogo();
+  if(!comprobanteEnEdicion.venta){
+    document.getElementById("ventaId").value = proximoIdMovimiento();
+    document.getElementById("tituloVenta").textContent = "Venta";
+    document.getElementById("botonIngresaVenta").textContent = "Ingresar VENTA";
+  }
+  if(!document.getElementById("ventaFecha").value){ document.getElementById("ventaFecha").value = hoyIso(); }
+  if(!document.getElementById("ventaHora").value){ document.getElementById("ventaHora").value = horaDeAhora(); }
+  var selectorCliente = document.getElementById("ventaCliente");
+  var elegido = selectorCliente.value || 1;
+  selectorCliente.innerHTML = opcionesDePersonas(base.clientes, elegido, false);
+  if(!renglones.venta){ armarFilasDeCarga("venta", "cuerpoVenta", 10); }
+  else{ recalcularCarga("venta"); }
+  if(!document.getElementById("ventaFormato").value){ document.getElementById("ventaFormato").value = base.config.formato; }
+  contarRenglones("venta");
+}
+
+function preparaPantallaCompra(){
+  refrescarCatalogo();
+  if(!comprobanteEnEdicion.compra){
+    document.getElementById("compraId").value = proximoIdMovimiento();
+    document.getElementById("tituloCompra").textContent = "Compra";
+    document.getElementById("botonIngresaCompra").textContent = "Ingresar COMPRA";
+  }
+  if(!document.getElementById("compraFecha").value){ document.getElementById("compraFecha").value = hoyIso(); }
+  if(!document.getElementById("compraHora").value){ document.getElementById("compraHora").value = horaDeAhora(); }
+  var selectorProv = document.getElementById("compraProveedor");
+  var elegido = selectorProv.value || 1;
+  selectorProv.innerHTML = opcionesDePersonas(base.proveedores, elegido, false);
+  if(!renglones.compra){ armarFilasDeCarga("compra", "cuerpoCompra", 10); }
+  else{ recalcularCarga("compra"); }
+  contarRenglones("compra");
+}
+
+function vaciarPantallaDeCarga(prefijo){
+  comprobanteEnEdicion[prefijo] = 0;
+  armarFilasDeCarga(prefijo, prefijo == "venta" ? "cuerpoVenta" : "cuerpoCompra", 10);
+  document.getElementById(prefijo + "Observaciones").value = "";
+  document.getElementById(prefijo + "Id").value = proximoIdMovimiento();
+  if(prefijo == "venta"){
+    document.getElementById("tituloVenta").textContent = "Venta";
+    document.getElementById("botonIngresaVenta").textContent = "Ingresar VENTA";
+  }else{
+    document.getElementById("tituloCompra").textContent = "Compra";
+    document.getElementById("botonIngresaCompra").textContent = "Ingresar COMPRA";
+  }
+  recalcularCarga(prefijo);
+}
+
+function lineasCargadas(prefijo){
+  var lineas = [];
+  var f;
+  for(f = 0; f < renglones[prefijo]; f++){
+    var campoProducto = document.getElementById(prefijo + "Prod" + f);
+    if(!campoProducto || !campoProducto.value){ continue; }
+    var p = productoDesdeTexto(campoProducto.value);
+    if(!p){ continue; }
+    var cantidad = aNumero(document.getElementById(prefijo + "Cant" + f).value);
+    if(cantidad <= 0){ continue; }
+    var precio = aNumero(document.getElementById(prefijo + "Precio" + f).value);
+    lineas.push({
+      idProducto: p.id, producto: p.nombre,
+      cantidad: cantidad, precio: precio, subtotal: precio * cantidad
+    });
+  }
+  return lineas;
+}
+
+function registrarOperacion(tipo){
+  var prefijo = (tipo == "VENTA") ? "venta" : "compra";
+  var lineas = lineasCargadas(prefijo);
+  var aviso = document.getElementById(prefijo == "venta" ? "avisoVenta" : "avisoCompra");
+  if(!lineas.length){
+    aviso.textContent = "Cargá al menos un producto con cantidad mayor que cero.";
+    return;
+  }
+  var idMovimiento = Math.round(aNumero(document.getElementById(prefijo + "Id").value));
+  if(idMovimiento <= 0){ idMovimiento = proximoIdMovimiento(); }
+  var editando = comprobanteEnEdicion[prefijo];
+  if(editando){
+    var quedan = [];
+    var k;
+    for(k = 0; k < base.movimientos.length; k++){
+      if(base.movimientos[k].idMovimiento != editando || base.movimientos[k].tipo == "DEVOLUCION"){
+        quedan.push(base.movimientos[k]);
+      }
+    }
+    base.movimientos = quedan;
+  }
+  var idContraparte = Number(document.getElementById(prefijo == "venta" ? "ventaCliente" : "compraProveedor").value);
+  var listaContrapartes = (tipo == "VENTA") ? base.clientes : base.proveedores;
+  var contraparte = porId(listaContrapartes, idContraparte);
+  var fecha = document.getElementById(prefijo + "Fecha").value || hoyIso();
+  var hora = document.getElementById(prefijo + "Hora").value || horaDeAhora();
+  var comentario = document.getElementById(prefijo + "Observaciones").value;
+  var medio = document.getElementById(prefijo + "MedioPago").value;
+  var cobrado = document.getElementById(prefijo + "Cobrado").value == "si";
+  var siguiente = proximoIdRenglon();
+  var i;
+  for(i = 0; i < lineas.length; i++){
+    base.movimientos.push({
+      idRenglon: siguiente + i,
+      idMovimiento: idMovimiento,
+      tipo: tipo,
+      fecha: fecha,
+      hora: hora,
+      idContraparte: idContraparte,
+      contraparte: contraparte ? contraparte.nombre : "",
+      idProducto: lineas[i].idProducto,
+      producto: lineas[i].producto,
+      cantidad: lineas[i].cantidad,
+      precio: lineas[i].precio,
+      total: lineas[i].subtotal,
+      medioPago: medio,
+      cobrado: cobrado,
+      comentarios: comentario
+    });
+  }
+  grabarBase();
+  guardarCopiaAutomatica((editando ? "Edición de " : "") + (tipo == "VENTA" ? "venta" : "compra") + " " + numeroComprobante(idMovimiento));
+  var eraEdicion = editando ? true : false;
+  vaciarPantallaDeCarga(prefijo);
+  document.getElementById(prefijo + "Hora").value = horaDeAhora();
+  aviso.textContent = (tipo == "VENTA" ? "Venta" : "Compra") + " " + numeroComprobante(idMovimiento)
+    + (eraEdicion ? " actualizada" : " registrada") + " con " + lineas.length + " artículo(s).";
+}
+
+function editarComprobante(idMovimiento){
+  var lineas = [];
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].idMovimiento == idMovimiento && base.movimientos[i].tipo != "DEVOLUCION"){
+      lineas.push(base.movimientos[i]);
+    }
+  }
+  if(!lineas.length){
+    window.alert("Ese comprobante no tiene renglones editables.");
+    return;
+  }
+  var tipo = lineas[0].tipo;
+  var prefijo = (tipo == "VENTA") ? "venta" : "compra";
+  comprobanteEnEdicion[prefijo] = idMovimiento;
+  mostrar(tipo == "VENTA" ? "Ventas" : "Compras");
+  document.getElementById(prefijo + "Id").value = idMovimiento;
+  document.getElementById(prefijo + "Fecha").value = lineas[0].fecha;
+  document.getElementById(prefijo + "Hora").value = lineas[0].hora;
+  document.getElementById(prefijo == "venta" ? "ventaCliente" : "compraProveedor").value = lineas[0].idContraparte;
+  document.getElementById(prefijo + "MedioPago").value = lineas[0].medioPago || "Efectivo";
+  document.getElementById(prefijo + "Cobrado").value = (lineas[0].cobrado === false) ? "no" : "si";
+  document.getElementById(prefijo + "Observaciones").value = lineas[0].comentarios || "";
+  var cuantas = lineas.length < 10 ? 10 : lineas.length + 2;
+  armarFilasDeCarga(prefijo, prefijo == "venta" ? "cuerpoVenta" : "cuerpoCompra", cuantas);
+  for(i = 0; i < lineas.length; i++){
+    var p = porId(base.productos, lineas[i].idProducto);
+    document.getElementById(prefijo + "Prod" + i).value = p ? etiquetaDeProducto(p) : lineas[i].producto;
+    document.getElementById(prefijo + "Precio" + i).value = lineas[i].precio;
+    document.getElementById(prefijo + "Cant" + i).value = lineas[i].cantidad;
+  }
+  recalcularCarga(prefijo);
+  document.getElementById("titulo" + (tipo == "VENTA" ? "Venta" : "Compra")).textContent =
+    "Editando comprobante " + numeroComprobante(idMovimiento);
+  document.getElementById("botonIngresa" + (tipo == "VENTA" ? "Venta" : "Compra")).textContent = "Guardar cambios del comprobante";
+}
+
+function devolverRenglon(idRenglon){
+  var original = null;
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].idRenglon == idRenglon){ original = base.movimientos[i]; }
+  }
+  if(!original || original.tipo != "VENTA"){
+    window.alert("Sólo se pueden devolver renglones de una venta.");
+    return;
+  }
+  var yaDevuelto = devueltoDelRenglon(idRenglon);
+  var disponible = aNumero(original.cantidad) - yaDevuelto;
+  if(disponible <= 0){
+    window.alert("Ese renglón ya fue devuelto por completo.");
+    return;
+  }
+  var respuesta = window.prompt("Cantidad a devolver de " + original.producto + " (máximo " + cantidadLinda(disponible) + "):", "" + disponible);
+  if(respuesta === null){ return; }
+  var cantidad = aNumero(respuesta);
+  if(cantidad <= 0){ return; }
+  if(cantidad > disponible){ cantidad = disponible; }
+  base.movimientos.push({
+    idRenglon: proximoIdRenglon(),
+    idMovimiento: original.idMovimiento,
+    idOrigen: idRenglon,
+    tipo: "DEVOLUCION",
+    fecha: hoyIso(),
+    hora: horaDeAhora(),
+    idContraparte: original.idContraparte,
+    contraparte: original.contraparte,
+    idProducto: original.idProducto,
+    producto: original.producto,
+    cantidad: cantidad,
+    precio: aNumero(original.precio),
+    total: cantidad * aNumero(original.precio),
+    medioPago: original.medioPago,
+    cobrado: original.cobrado,
+    comentarios: "Nota de crédito sobre " + numeroComprobante(original.idMovimiento)
+  });
+  grabarBase();
+  guardarCopiaAutomatica("Devolución sobre " + numeroComprobante(original.idMovimiento));
+  pintarMovimientos();
+}
+
+function cargarPedidoEnCompras(idProveedor){
+  var faltantes = listaDeReposicion();
+  var elegidos = [];
+  var i;
+  for(i = 0; i < faltantes.length; i++){
+    if(faltantes[i].producto.idProveedor == idProveedor){ elegidos.push(faltantes[i]); }
+  }
+  if(!elegidos.length){
+    document.getElementById("avisoReposicion").textContent = "Ese proveedor no tiene faltantes.";
+    return;
+  }
+  comprobanteEnEdicion.compra = 0;
+  mostrar("Compras");
+  document.getElementById("compraProveedor").value = idProveedor;
+  var cuantas = elegidos.length < 10 ? 10 : elegidos.length + 2;
+  armarFilasDeCarga("compra", "cuerpoCompra", cuantas);
+  for(i = 0; i < elegidos.length; i++){
+    document.getElementById("compraProd" + i).value = etiquetaDeProducto(elegidos[i].producto);
+    document.getElementById("compraPrecio" + i).value = elegidos[i].producto.precioCompra;
+    document.getElementById("compraCant" + i).value = elegidos[i].sugerido;
+  }
+  document.getElementById("compraObservaciones").value = "Pedido de reposición generado el " + fechaLinda(hoyIso());
+  recalcularCarga("compra");
+}
+
+function armarComprobante(tipo){
+  var prefijo = (tipo == "VENTA") ? "venta" : "compra";
+  var lineas = lineasCargadas(prefijo);
+  if(!lineas.length){
+    window.alert("No hay artículos cargados para imprimir.");
+    return;
+  }
+  var formato = document.getElementById(prefijo + "Formato").value;
+  var listaContrapartes = (tipo == "VENTA") ? base.clientes : base.proveedores;
+  var contraparte = porId(listaContrapartes, Number(document.getElementById(prefijo == "venta" ? "ventaCliente" : "compraProveedor").value));
+  var html = "";
+  if(base.config.comercio){ html = html + "<div><strong>" + seguro(base.config.comercio) + "</strong></div>"; }
+  html = html + "<h2>" + (tipo == "VENTA" ? "Remito de Venta" : "Orden de Compra") + "</h2>";
+  html = html + "<div>N° " + seguro(numeroComprobante(document.getElementById(prefijo + "Id").value));
+  html = html + " · " + fechaLinda(document.getElementById(prefijo + "Fecha").value);
+  html = html + " · " + seguro(document.getElementById(prefijo + "Hora").value) + "</div>";
+  html = html + "<div>" + (tipo == "VENTA" ? "Cliente: " : "Proveedor: ") + seguro(contraparte ? contraparte.nombre : "") + "</div>";
+  html = html + "<div>Pago: " + seguro(document.getElementById(prefijo + "MedioPago").value);
+  html = html + " · " + (document.getElementById(prefijo + "Cobrado").value == "si" ? "Cancelado" : "Pendiente") + "</div>";
+  html = html + "<table><thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead><tbody>";
+  var total = 0;
+  var i;
+  for(i = 0; i < lineas.length; i++){
+    total = total + lineas[i].subtotal;
+    html = html + "<tr><td>" + seguro(lineas[i].producto) + "</td><td>" + cantidadLinda(lineas[i].cantidad) + "</td>";
+    html = html + "<td>" + pesos(lineas[i].precio) + "</td><td>" + pesos(lineas[i].subtotal) + "</td></tr>";
+  }
+  html = html + "</tbody></table>";
+  html = html + "<h3>Total: " + pesos(total) + "</h3>";
+  var nota = document.getElementById(prefijo + "Observaciones").value;
+  if(nota){ html = html + "<p>" + seguro(nota) + "</p>"; }
+  var caja = document.getElementById("comprobante");
+  caja.innerHTML = html;
+  if(formato == "ticket80"){ caja.className = "ticket"; }
+  else if(formato == "ticket58"){ caja.className = "ticket angosto"; }
+  else{ caja.className = ""; }
+  window.print();
+}
+function movimientosFiltrados(){
+  var tipo = document.getElementById("filtroTipoMov").value;
+  var cobro = document.getElementById("filtroCobro").value;
+  var desde = document.getElementById("filtroDesde").value;
+  var hasta = document.getElementById("filtroHasta").value;
+  var texto = document.getElementById("filtroTextoMov").value.toLowerCase();
+  var salida = [];
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(tipo && m.tipo != tipo){ continue; }
+    if(cobro == "si" && m.cobrado === false){ continue; }
+    if(cobro == "no" && m.cobrado !== false){ continue; }
+    if(desde && m.fecha < desde){ continue; }
+    if(hasta && m.fecha > hasta){ continue; }
+    if(texto){
+      var bolsa = (m.contraparte + " " + m.producto + " " + m.comentarios).toLowerCase();
+      if(bolsa.indexOf(texto) < 0){ continue; }
+    }
+    salida.push(m);
+  }
+  salida.sort(function(a, b){
+    if(a.fecha == b.fecha){ return Number(b.idMovimiento) - Number(a.idMovimiento); }
+    return a.fecha < b.fecha ? 1 : -1;
+  });
+  return salida;
+}
+
+function pintarMovimientos(){
+  var lista = movimientosFiltrados();
+  var cuerpo = document.getElementById("cuerpoMovimientos");
+  var filas = "";
+  var importeVentas = 0;
+  var importeDevoluciones = 0;
+  var importeCompras = 0;
+  var cantidadVendida = 0;
+  var comprobantesDeVenta = {};
+  var i;
+  for(i = 0; i < lista.length; i++){
+    var m = lista[i];
+    var esVenta = (m.tipo == "VENTA");
+    var esDevolucion = (m.tipo == "DEVOLUCION");
+    if(esVenta){
+      importeVentas = importeVentas + aNumero(m.total);
+      cantidadVendida = cantidadVendida + aNumero(m.cantidad);
+      comprobantesDeVenta["n" + m.idMovimiento] = 1;
+    }else if(esDevolucion){
+      importeDevoluciones = importeDevoluciones + aNumero(m.total);
+      cantidadVendida = cantidadVendida - aNumero(m.cantidad);
+    }else{
+      importeCompras = importeCompras + aNumero(m.total);
+    }
+    var claseTipo = esVenta ? "venta" : (esDevolucion ? "devolucion" : "compra");
+    var enEdicion = (comprobanteEnEdicion.venta == m.idMovimiento || comprobanteEnEdicion.compra == m.idMovimiento);
+    filas = filas + (enEdicion ? '<tr class="filaEditando">' : "<tr>");
+    filas = filas + "<td>" + seguro(numeroComprobante(m.idMovimiento)) + "</td>";
+    filas = filas + '<td><span class="chip ' + claseTipo + '">' + m.tipo + "</span></td>";
+    filas = filas + "<td>" + fechaLinda(m.fecha) + "</td>";
+    filas = filas + "<td>" + seguro(m.hora) + "</td>";
+    filas = filas + "<td>" + seguro(m.contraparte) + "</td>";
+    filas = filas + "<td>" + seguro(m.producto) + "</td>";
+    filas = filas + '<td class="num">' + (m.tipo == "COMPRA" ? cantidadLinda(m.cantidad) : "") + "</td>";
+    filas = filas + '<td class="num">' + (esVenta ? cantidadLinda(m.cantidad) : (esDevolucion ? "-" + cantidadLinda(m.cantidad) : "")) + "</td>";
+    filas = filas + '<td class="num">' + (m.tipo == "COMPRA" ? pesos(m.precio) : "") + "</td>";
+    filas = filas + '<td class="num">' + (m.tipo != "COMPRA" ? pesos(m.precio) : "") + "</td>";
+    filas = filas + '<td class="num">' + (m.tipo == "COMPRA" ? pesos(m.total) : "") + "</td>";
+    filas = filas + '<td class="num">' + (esVenta ? pesos(m.total) : (esDevolucion ? "-" + pesos(m.total) : "")) + "</td>";
+    filas = filas + '<td><span class="chip ' + (m.cobrado === false ? "pendiente" : "cobrado") + '">' + seguro(m.medioPago || "") + "</span></td>";
+    filas = filas + "<td>" + seguro(m.comentarios) + "</td>";
+    filas = filas + "<td>";
+    if(!esDevolucion){
+      filas = filas + '<button class="mini" data-editacomprobante="' + m.idMovimiento + '">Editar</button>';
+    }
+    if(esVenta){
+      filas = filas + '<button class="mini" data-devuelve="' + m.idRenglon + '">Devolver</button>';
+    }
+    filas = filas + '<button class="mini peligro" data-anula="' + m.idMovimiento + '">Anular</button>';
+    filas = filas + "</td></tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="15">Sin movimientos para los filtros elegidos.</td></tr>'; }
+  cuerpo.innerHTML = filas;
+  var cuantasVentas = 0;
+  var clave;
+  for(clave in comprobantesDeVenta){
+    if(comprobantesDeVenta.hasOwnProperty(clave)){ cuantasVentas = cuantasVentas + 1; }
+  }
+  document.getElementById("movCantVentas").textContent = "" + cuantasVentas;
+  document.getElementById("movProdVendidos").textContent = cantidadLinda(cantidadVendida);
+  document.getElementById("movImpCompras").textContent = pesos(importeCompras);
+  document.getElementById("movImpVentas").textContent = pesos(importeVentas - importeDevoluciones);
+  document.getElementById("pieMovimientos").textContent =
+    lista.length + " renglón(es) · balance de la selección " + pesos(importeVentas - importeDevoluciones - importeCompras);
+}
+
+function anularMovimiento(idMovimiento){
+  if(!window.confirm("¿Anular el comprobante " + numeroComprobante(idMovimiento) + " completo? Se borran todos sus renglones, incluidas sus devoluciones.")){ return; }
+  var quedan = [];
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    if(base.movimientos[i].idMovimiento != idMovimiento){ quedan.push(base.movimientos[i]); }
+  }
+  base.movimientos = quedan;
+  if(comprobanteEnEdicion.venta == idMovimiento){ comprobanteEnEdicion.venta = 0; }
+  if(comprobanteEnEdicion.compra == idMovimiento){ comprobanteEnEdicion.compra = 0; }
+  grabarBase();
+  guardarCopiaAutomatica("Anulación de " + numeroComprobante(idMovimiento));
+  pintarMovimientos();
+}
+
+function pintarCuentaCorriente(){
+  var deuda = deudaGeneral();
+  ponerCifra("ccDeudaTotal", deuda.total, true);
+  document.getElementById("ccImpagos").textContent = "" + deuda.impagos;
+  var nodoMora = document.getElementById("ccMora");
+  nodoMora.textContent = deuda.mora + " días";
+  nodoMora.className = deuda.mora > 30 ? "cifra negativa" : "cifra";
+  var selector = document.getElementById("pagoCliente");
+  var elegido = selector.value;
+  selector.innerHTML = opcionesDePersonas(base.clientes, elegido, false);
+  if(!document.getElementById("pagoFecha").value){ document.getElementById("pagoFecha").value = hoyIso(); }
+  var filas = "";
+  var i;
+  for(i = 0; i < base.clientes.length; i++){
+    var c = base.clientes[i];
+    var cuenta = cuentaDelCliente(c.id);
+    if(cuenta.aCuenta === 0 && cuenta.pagado === 0){ continue; }
+    filas = filas + "<tr>";
+    filas = filas + "<td>" + seguro(c.nombre) + "</td>";
+    filas = filas + '<td class="num">' + pesos(cuenta.aCuenta) + "</td>";
+    filas = filas + '<td class="num">' + pesos(cuenta.pagado) + "</td>";
+    filas = filas + '<td class="num"><strong>' + pesos(cuenta.saldo) + "</strong></td>";
+    filas = filas + "<td>" + fechaLinda(cuenta.masViejo) + "</td>";
+    filas = filas + '<td class="num">' + (cuenta.dias ? cuenta.dias : "") + "</td>";
+    filas = filas + "</tr>";
+  }
+  if(!filas){ filas = '<tr><td colspan="6">No hay ventas en cuenta corriente.</td></tr>'; }
+  document.getElementById("cuerpoCuentaCorriente").innerHTML = filas;
+  var pagos = "";
+  var desde = base.pagos.length - 1;
+  var cuantos = 0;
+  for(i = desde; i >= 0 && cuantos < 25; i--){
+    var pg = base.pagos[i];
+    var cliente = porId(base.clientes, pg.idCliente);
+    cuantos = cuantos + 1;
+    pagos = pagos + "<tr>";
+    pagos = pagos + "<td>" + fechaLinda(pg.fecha) + "</td>";
+    pagos = pagos + "<td>" + seguro(cliente ? cliente.nombre : "") + "</td>";
+    pagos = pagos + "<td>" + seguro(pg.medio) + "</td>";
+    pagos = pagos + '<td class="num">' + pesos(pg.importe) + "</td>";
+    pagos = pagos + "<td>" + seguro(pg.comentario) + "</td>";
+    pagos = pagos + '<td><button class="mini peligro" data-borrapago="' + pg.id + '">Borrar</button></td>';
+    pagos = pagos + "</tr>";
+  }
+  if(!pagos){ pagos = '<tr><td colspan="6">Todavía no se registraron pagos.</td></tr>'; }
+  document.getElementById("cuerpoPagos").innerHTML = pagos;
+}
+
+function registrarPago(){
+  var idCliente = Number(document.getElementById("pagoCliente").value);
+  var importe = aNumero(document.getElementById("pagoImporte").value);
+  var aviso = document.getElementById("avisoPago");
+  if(importe <= 0){
+    aviso.textContent = "El importe tiene que ser mayor que cero.";
+    return;
+  }
+  base.pagos.push({
+    id: idSiguiente(base.pagos),
+    idCliente: idCliente,
+    fecha: document.getElementById("pagoFecha").value || hoyIso(),
+    importe: importe,
+    medio: document.getElementById("pagoMedio").value,
+    comentario: document.getElementById("pagoComentario").value
+  });
+  grabarBase();
+  guardarCopiaAutomatica("Pago de cuenta corriente");
+  document.getElementById("pagoImporte").value = "";
+  document.getElementById("pagoComentario").value = "";
+  var cuenta = cuentaDelCliente(idCliente);
+  aviso.textContent = "Pago registrado. Saldo del cliente: " + pesos(cuenta.saldo);
+  pintarCuentaCorriente();
+}
+
+function borrarPago(id){
+  if(!window.confirm("¿Borrar ese pago?")){ return; }
+  var quedan = [];
+  var i;
+  for(i = 0; i < base.pagos.length; i++){
+    if(base.pagos[i].id != id){ quedan.push(base.pagos[i]); }
+  }
+  base.pagos = quedan;
+  grabarBase();
+  pintarCuentaCorriente();
+}
+
+function pintarReposicion(){
+  var faltantes = listaDeReposicion();
+  var contenedor = document.getElementById("cuerpoReposicion");
+  var conFaltante = {};
+  var i;
+  for(i = 0; i < faltantes.length; i++){ conFaltante["p" + faltantes[i].producto.idProveedor] = 1; }
+  var soloProveedores = [];
+  for(i = 0; i < base.proveedores.length; i++){
+    if(conFaltante["p" + base.proveedores[i].id]){ soloProveedores.push(base.proveedores[i]); }
+  }
+  document.getElementById("reposicionProveedor").innerHTML = opcionesDePersonas(soloProveedores, "", false);
+  if(!faltantes.length){
+    contenedor.innerHTML = '<div class="bloque">No hay productos por debajo de la cantidad mínima.</div>';
+    return;
+  }
+  var html = "";
+  var j;
+  for(i = 0; i < soloProveedores.length; i++){
+    var prov = soloProveedores[i];
+    var filas = "";
+    var totalProveedor = 0;
+    for(j = 0; j < faltantes.length; j++){
+      var f = faltantes[j];
+      if(f.producto.idProveedor != prov.id){ continue; }
+      var costoPedido = f.sugerido * f.costo;
+      totalProveedor = totalProveedor + costoPedido;
+      filas = filas + "<tr>";
+      filas = filas + '<td class="num">' + f.producto.id + "</td>";
+      filas = filas + "<td>" + seguro(f.producto.nombre) + "</td>";
+      filas = filas + "<td>" + seguro(f.producto.sku || "") + "</td>";
+      filas = filas + '<td class="num">' + cantidadLinda(f.stock) + "</td>";
+      filas = filas + '<td class="num">' + cantidadLinda(f.minima) + "</td>";
+      filas = filas + '<td class="num"><strong>' + cantidadLinda(f.sugerido) + "</strong></td>";
+      filas = filas + '<td class="num">' + pesos(f.costo) + "</td>";
+      filas = filas + '<td class="num">' + pesos(costoPedido) + "</td>";
+      filas = filas + "</tr>";
+    }
+    html = html + '<div class="pieAgrupado">' + seguro(prov.nombre) + " · pedido estimado " + pesos(totalProveedor) + "</div>";
+    html = html + '<div class="envolturaTabla"><table class="planilla"><thead><tr>';
+    html = html + "<th>Id</th><th>Producto</th><th>SKU</th>";
+    html = html + '<th class="num">Stock</th><th class="num">Mínimo</th><th class="num">Sugerido</th>';
+    html = html + '<th class="num">Costo</th><th class="num">Subtotal</th>';
+    html = html + "</tr></thead><tbody>" + filas + "</tbody></table></div>";
+  }
+  contenedor.innerHTML = html;
+}
+
+function imprimirPedido(){
+  var faltantes = listaDeReposicion();
+  if(!faltantes.length){
+    window.alert("No hay faltantes para imprimir.");
+    return;
+  }
+  var html = "";
+  if(base.config.comercio){ html = html + "<div><strong>" + seguro(base.config.comercio) + "</strong></div>"; }
+  html = html + "<h2>Pedido de reposición</h2><div>" + fechaLinda(hoyIso()) + "</div>";
+  html = html + "<table><thead><tr><th>Proveedor</th><th>Producto</th><th>Stock</th><th>Sugerido</th><th>Subtotal</th></tr></thead><tbody>";
+  var total = 0;
+  var i;
+  for(i = 0; i < faltantes.length; i++){
+    var f = faltantes[i];
+    var prov = porId(base.proveedores, f.producto.idProveedor);
+    var subtotal = f.sugerido * f.costo;
+    total = total + subtotal;
+    html = html + "<tr><td>" + seguro(prov ? prov.nombre : "") + "</td><td>" + seguro(f.producto.nombre) + "</td>";
+    html = html + "<td>" + cantidadLinda(f.stock) + "</td><td>" + cantidadLinda(f.sugerido) + "</td>";
+    html = html + "<td>" + pesos(subtotal) + "</td></tr>";
+  }
+  html = html + "</tbody></table><h3>Total estimado: " + pesos(total) + "</h3>";
+  var caja = document.getElementById("comprobante");
+  caja.className = "";
+  caja.innerHTML = html;
+  window.print();
+}
+
+function pintarEstadisticas(){
+  var caja = balanceDeCaja();
+  var bienes = capitalEnBienes();
+  var costo = capitalACosto();
+  var general = resumenDePeriodo("", "");
+  var deuda = deudaGeneral();
+  ponerCifra("estCaja", caja.saldo, true);
+  ponerCifra("estBienes", bienes, true);
+  ponerCifra("estCosto", costo, true);
+  ponerCifra("estVentas", general.netas, true);
+  ponerCifra("estCmv", general.cmv, true);
+  ponerCifra("estMargen", general.margen, true);
+  ponerCifra("estPatrimonio", caja.saldo + bienes, true);
+  ponerCifra("estDeuda", deuda.total, true);
+  var nodoPorciento = document.getElementById("estMargenPorciento");
+  nodoPorciento.textContent = general.netas ? porcentajeLindo(general.margen / general.netas * 100) : "—";
+  nodoPorciento.className = general.margen >= 0 ? "cifra positiva" : "cifra negativa";
+  var filas = "";
+  var i;
+  for(i = 0; i < base.clientes.length; i++){
+    var c = base.clientes[i];
+    filas = filas + "<tr><td>" + seguro(c.nombre) + '</td><td class="num">' + pesos(totalesDelCliente(c.id).importe) + "</td></tr>";
+  }
+  document.getElementById("cuerpoEstClientes").innerHTML = filas;
+  var otras = "";
+  for(i = 0; i < base.proveedores.length; i++){
+    var pr = base.proveedores[i];
+    otras = otras + "<tr><td>" + seguro(pr.nombre) + '</td><td class="num">' + pesos(totalesDelProveedor(pr.id).importe) + "</td></tr>";
+  }
+  document.getElementById("cuerpoEstProveedores").innerHTML = otras;
+  var tabla = "";
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    var t = totalesDelProducto(p.id);
+    tabla = tabla + "<tr><td>" + seguro(p.nombre) + "</td>";
+    tabla = tabla + '<td class="num">' + cantidadLinda(t.comprado) + "</td>";
+    tabla = tabla + '<td class="num">' + pesos(t.importeCompra) + "</td>";
+    tabla = tabla + '<td class="num">' + cantidadLinda(t.vendido - t.devuelto) + "</td>";
+    tabla = tabla + '<td class="num">' + pesos(t.ventaNeta) + "</td>";
+    tabla = tabla + '<td class="num">' + pesos(t.cmv) + "</td>";
+    tabla = tabla + '<td class="num">' + pesos(t.margen) + "</td>";
+    tabla = tabla + '<td class="num">' + cantidadLinda(t.stock) + "</td></tr>";
+  }
+  if(!tabla){ tabla = '<tr><td colspan="8">Todavía no hay productos cargados.</td></tr>'; }
+  document.getElementById("cuerpoEstProductos").innerHTML = tabla;
+}
+
+function ventasPorMes(){
+  var acumulado = {};
+  var orden = [];
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    if(m.tipo == "COMPRA"){ continue; }
+    var clave = mesDe(m.fecha);
+    if(!clave){ continue; }
+    if(acumulado[clave] === undefined){ acumulado[clave] = 0; orden.push(clave); }
+    if(m.tipo == "VENTA"){ acumulado[clave] = acumulado[clave] + aNumero(m.total); }
+    else{ acumulado[clave] = acumulado[clave] - aNumero(m.total); }
+  }
+  orden.sort();
+  var datos = [];
+  for(i = 0; i < orden.length; i++){
+    datos.push({ etiqueta: etiquetaMes(orden[i]), valor: acumulado[orden[i]] });
+  }
+  if(datos.length > 12){ datos = datos.slice(datos.length - 12); }
+  return datos;
+}
+
+function rankingDeProductos(cuantos){
+  var datos = [];
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var t = totalesDelProducto(base.productos[i].id);
+    if(t.ventaNeta === 0){ continue; }
+    datos.push({ etiqueta: base.productos[i].nombre, valor: t.ventaNeta });
+  }
+  datos.sort(function(a, b){ return b.valor - a.valor; });
+  if(datos.length > cuantos){ datos = datos.slice(0, cuantos); }
+  return datos;
+}
+
+function participacionDeClientes(cuantos){
+  var datos = [];
+  var i;
+  for(i = 0; i < base.clientes.length; i++){
+    var importe = totalesDelCliente(base.clientes[i].id).importe;
+    if(importe === 0){ continue; }
+    datos.push({ etiqueta: base.clientes[i].nombre, valor: importe });
+  }
+  datos.sort(function(a, b){ return b.valor - a.valor; });
+  if(datos.length > cuantos){ datos = datos.slice(0, cuantos); }
+  return datos;
+}
+
+function barrasVerticales(datos, color){
+  if(!datos.length){ return '<p class="aviso">Todavía no hay datos para graficar.</p>'; }
+  var ancho = 700;
+  var alto = 260;
+  var margenIzq = 70;
+  var margenAbajo = 34;
+  var margenArriba = 14;
+  var maximo = 0;
+  var i;
+  for(i = 0; i < datos.length; i++){
+    if(Math.abs(datos[i].valor) > maximo){ maximo = Math.abs(datos[i].valor); }
+  }
+  if(maximo <= 0){ maximo = 1; }
+  var util = ancho - margenIzq - 12;
+  var altoUtil = alto - margenAbajo - margenArriba;
+  var paso = util / datos.length;
+  var anchoBarra = paso * 0.62;
+  var svg = '<svg class="grafico" viewBox="0 0 ' + ancho + " " + alto + '" xmlns="http://www.w3.org/2000/svg">';
+  var lineas;
+  for(lineas = 0; lineas <= 4; lineas++){
+    var y = margenArriba + altoUtil - (altoUtil * lineas / 4);
+    svg = svg + '<line class="ejeSuave" x1="' + margenIzq + '" y1="' + y + '" x2="' + (ancho - 12) + '" y2="' + y + '"></line>';
+    svg = svg + '<text x="' + (margenIzq - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + pesos(maximo * lineas / 4) + "</text>";
+  }
+  for(i = 0; i < datos.length; i++){
+    var valor = datos[i].valor;
+    var altura = altoUtil * (Math.abs(valor) / maximo);
+    var x = margenIzq + paso * i + (paso - anchoBarra) / 2;
+    var y2 = margenArriba + altoUtil - altura;
+    svg = svg + '<rect x="' + x + '" y="' + y2 + '" width="' + anchoBarra + '" height="' + altura + '" fill="' + (valor < 0 ? "#B85C50" : color) + '" rx="2"></rect>';
+    svg = svg + '<text class="valor" x="' + (x + anchoBarra / 2) + '" y="' + (y2 - 4) + '" text-anchor="middle">' + pesos(valor) + "</text>";
+    svg = svg + '<text x="' + (x + anchoBarra / 2) + '" y="' + (alto - 12) + '" text-anchor="middle">' + seguro(datos[i].etiqueta) + "</text>";
+  }
+  svg = svg + "</svg>";
+  return svg;
+}
+
+function barrasHorizontales(datos, color){
+  if(!datos.length){ return '<p class="aviso">Todavía no hay datos para graficar.</p>'; }
+  var ancho = 520;
+  var altoFila = 26;
+  var margenIzq = 160;
+  var alto = datos.length * altoFila + 16;
+  var maximo = 0;
+  var total = 0;
+  var i;
+  for(i = 0; i < datos.length; i++){
+    if(datos[i].valor > maximo){ maximo = datos[i].valor; }
+    total = total + datos[i].valor;
+  }
+  if(maximo <= 0){ maximo = 1; }
+  var util = ancho - margenIzq - 80;
+  var svg = '<svg class="grafico" viewBox="0 0 ' + ancho + " " + alto + '" xmlns="http://www.w3.org/2000/svg">';
+  for(i = 0; i < datos.length; i++){
+    var y = 8 + altoFila * i;
+    var largo = util * (datos[i].valor / maximo);
+    var etiqueta = datos[i].etiqueta;
+    if(etiqueta.length > 24){ etiqueta = etiqueta.substring(0, 23) + "…"; }
+    svg = svg + '<text x="' + (margenIzq - 8) + '" y="' + (y + 13) + '" text-anchor="end">' + seguro(etiqueta) + "</text>";
+    svg = svg + '<rect x="' + margenIzq + '" y="' + (y + 3) + '" width="' + largo + '" height="' + (altoFila - 10) + '" fill="' + color + '" rx="2"></rect>';
+    var porcion = total ? Math.round(datos[i].valor / total * 1000) / 10 : 0;
+    svg = svg + '<text class="valor" x="' + (margenIzq + largo + 6) + '" y="' + (y + 13) + '">' + pesos(datos[i].valor) + " · " + porcion + "%</text>";
+  }
+  svg = svg + "</svg>";
+  return svg;
+}
+
+function dibujarGraficos(){
+  document.getElementById("graficoMeses").innerHTML = barrasVerticales(ventasPorMes(), "#9BB08F");
+  document.getElementById("graficoProductos").innerHTML = barrasHorizontales(rankingDeProductos(8), "#8B6F47");
+  document.getElementById("graficoClientes").innerHTML = barrasHorizontales(participacionDeClientes(8), "#B85C50");
+}
+
+function rangoDelPeriodo(cual){
+  var hoy = hoyIso();
+  if(cual == "anio"){
+    var anio = Number(hoy.substring(0, 4));
+    return {
+      rotuloA: "" + anio, desdeA: anio + "-01-01", hastaA: anio + "-12-31",
+      rotuloB: "" + (anio - 1), desdeB: (anio - 1) + "-01-01", hastaB: (anio - 1) + "-12-31"
+    };
+  }
+  var inicioA = primerDiaDelMes(hoy);
+  var finA = ultimoDiaDelMes(hoy);
+  if(cual == "mesAnio"){
+    var anterior = (Number(hoy.substring(0, 4)) - 1) + hoy.substring(4, 7) + "-01";
+    return {
+      rotuloA: etiquetaMes(mesDe(inicioA)), desdeA: inicioA, hastaA: finA,
+      rotuloB: etiquetaMes(mesDe(anterior)), desdeB: anterior, hastaB: ultimoDiaDelMes(anterior)
+    };
+  }
+  var previo = mesAnterior(hoy);
+  return {
+    rotuloA: etiquetaMes(mesDe(inicioA)), desdeA: inicioA, hastaA: finA,
+    rotuloB: etiquetaMes(mesDe(previo)), desdeB: previo, hastaB: ultimoDiaDelMes(previo)
+  };
+}
+
+function variacion(a, b){
+  if(!b){ return a ? "nuevo" : "—"; }
+  var cambio = (a - b) / Math.abs(b) * 100;
+  return (cambio >= 0 ? "+" : "") + (Math.round(cambio * 10) / 10) + " %";
+}
+
+function filaComparada(rotulo, a, b, esPlata){
+  var texto = "<tr><td>" + rotulo + "</td>";
+  texto = texto + '<td class="num">' + (esPlata ? pesos(a) : cantidadLinda(a)) + "</td>";
+  texto = texto + '<td class="num">' + (esPlata ? pesos(b) : cantidadLinda(b)) + "</td>";
+  var clase = a >= b ? "variacion sube" : "variacion baja";
+  texto = texto + '<td class="num"><span class="' + clase + '">' + variacion(a, b) + "</span></td></tr>";
+  return texto;
+}
+
+function compararPeriodos(){
+  var cual = document.getElementById("periodoComparacion").value;
+  var rango = rangoDelPeriodo(cual);
+  var a = resumenDePeriodo(rango.desdeA, rango.hastaA);
+  var b = resumenDePeriodo(rango.desdeB, rango.hastaB);
+  document.getElementById("rotuloPeriodoA").textContent = rango.rotuloA;
+  document.getElementById("rotuloPeriodoB").textContent = rango.rotuloB;
+  var filas = "";
+  filas = filas + filaComparada("Ventas netas", a.netas, b.netas, true);
+  filas = filas + filaComparada("Devoluciones", a.devoluciones, b.devoluciones, true);
+  filas = filas + filaComparada("Compras", a.compras, b.compras, true);
+  filas = filas + filaComparada("Costo de la mercadería vendida", a.cmv, b.cmv, true);
+  filas = filas + filaComparada("Margen real", a.margen, b.margen, true);
+  filas = filas + filaComparada("Comprobantes de venta", a.comprobantes, b.comprobantes, false);
+  filas = filas + filaComparada("Unidades vendidas", a.unidades, b.unidades, false);
+  filas = filas + filaComparada("Ticket promedio", a.ticketPromedio, b.ticketPromedio, true);
+  document.getElementById("cuerpoComparacion").innerHTML = filas;
+}
+function resumenDeLaBase(){
+  var caja = balanceDeCaja();
+  var general = resumenDePeriodo("", "");
+  var filas = "";
+  filas = filas + "<tr><td>Clientes</td><td>" + base.clientes.length + "</td></tr>";
+  filas = filas + "<tr><td>Proveedores</td><td>" + base.proveedores.length + "</td></tr>";
+  filas = filas + "<tr><td>Productos</td><td>" + base.productos.length + "</td></tr>";
+  filas = filas + "<tr><td>Renglones de movimiento</td><td>" + base.movimientos.length + "</td></tr>";
+  filas = filas + "<tr><td>Pagos registrados</td><td>" + base.pagos.length + "</td></tr>";
+  filas = filas + "<tr><td>Cambios de precio guardados</td><td>" + base.historialPrecios.length + "</td></tr>";
+  filas = filas + "<tr><td>Ventas netas</td><td>" + pesos(general.netas) + "</td></tr>";
+  filas = filas + "<tr><td>Importe comprado</td><td>" + pesos(general.compras) + "</td></tr>";
+  filas = filas + "<tr><td>Saldo de caja</td><td>" + pesos(caja.saldo) + "</td></tr>";
+  document.getElementById("cuerpoEstadoBase").innerHTML = filas;
+  document.getElementById("configPrefijo").value = base.config.prefijo;
+  document.getElementById("configFormato").value = base.config.formato;
+  document.getElementById("configComercio").value = base.config.comercio;
+  var ultimo = document.getElementById("avisoUltimoRespaldo");
+  if(base.config.ultimoRespaldo){
+    ultimo.textContent = "Último respaldo bajado el " + fechaLinda(base.config.ultimoRespaldo)
+      + " (hace " + diasEntre(base.config.ultimoRespaldo, hoyIso()) + " días).";
+  }else{
+    ultimo.textContent = "Todavía no se bajó ningún respaldo manual.";
+  }
+  pintarCopias();
+}
+
+function pintarCopias(){
+  var lista = leerCopias();
+  var html = "";
+  var i;
+  for(i = 0; i < lista.length; i++){
+    var c = lista[i];
+    html = html + "<li><span>" + fechaLinda(c.fecha) + " " + seguro(c.hora) + " · " + seguro(c.motivo);
+    html = html + " · " + c.renglones + " renglones</span>";
+    html = html + '<span><button class="mini" data-bajacopia="' + i + '">Descargar</button>';
+    html = html + '<button class="mini peligro" data-restauracopia="' + i + '">Restaurar</button></span></li>';
+  }
+  if(!html){ html = "<li><span>Todavía no hay copias automáticas.</span></li>"; }
+  document.getElementById("listaRespaldosAuto").innerHTML = html;
+}
+
+function restaurarCopia(indice){
+  var lista = leerCopias();
+  var copia = lista[indice];
+  if(!copia){ return; }
+  if(!window.confirm("Se reemplaza la base actual por la copia del " + fechaLinda(copia.fecha) + " " + copia.hora + ". ¿Seguimos?")){ return; }
+  var traida = null;
+  try{
+    traida = JSON.parse(copia.contenido);
+  }catch(e){
+    window.alert("Esa copia está dañada.");
+    return;
+  }
+  base = normalizarBase(traida);
+  grabarBase();
+  renglones.venta = 0;
+  renglones.compra = 0;
+  document.getElementById("cuerpoVenta").innerHTML = "";
+  document.getElementById("cuerpoCompra").innerHTML = "";
+  refrescarCatalogo();
+  mostrar("Panel");
+}
+
+function bajarCopia(indice){
+  var lista = leerCopias();
+  var copia = lista[indice];
+  if(!copia){ return; }
+  bajarArchivo("copia_" + copia.fecha + "_" + copia.hora.split(":").join("") + ".json", copia.contenido, "application/json");
+}
+
+function bajarArchivo(nombre, contenido, tipoMime){
+  var bloque = new Blob([contenido], { type: tipoMime });
+  var url = URL.createObjectURL(bloque);
+  var ancla = document.createElement("a");
+  ancla.href = url;
+  ancla.download = nombre;
+  document.body.appendChild(ancla);
+  ancla.click();
+  document.body.removeChild(ancla);
+  URL.revokeObjectURL(url);
+}
+
+function exportarRespaldo(){
+  bajarArchivo("gestion_venta_stock_" + hoyIso() + ".json", JSON.stringify(base, null, 2), "application/json");
+  base.config.ultimoRespaldo = hoyIso();
+  grabarBase();
+  document.getElementById("avisoRespaldo").textContent = "Respaldo generado.";
+  resumenDeLaBase();
+}
+
+function celdaCsv(valor){
+  var s = (valor === null || valor === undefined) ? "" : ("" + valor);
+  s = s.split('"').join('""');
+  return '"' + s + '"';
+}
+
+function exportarMovimientosCsv(){
+  var lineas = "Comprobante;Tip-Mov;Fecha;Hora;Clie-Prov;Producto;Cant-Compra;CantVenta;ValorCompra;ValorVenta;TotalComp;TotalVent;MedioPago;Cobrado;Comentarios\n";
+  var i;
+  for(i = 0; i < base.movimientos.length; i++){
+    var m = base.movimientos[i];
+    var esCompra = (m.tipo == "COMPRA");
+    lineas = lineas + [
+      celdaCsv(numeroComprobante(m.idMovimiento)), celdaCsv(m.tipo), celdaCsv(fechaLinda(m.fecha)), celdaCsv(m.hora),
+      celdaCsv(m.contraparte), celdaCsv(m.producto),
+      celdaCsv(esCompra ? m.cantidad : ""), celdaCsv(esCompra ? "" : m.cantidad),
+      celdaCsv(esCompra ? m.precio : ""), celdaCsv(esCompra ? "" : m.precio),
+      celdaCsv(esCompra ? m.total : ""), celdaCsv(esCompra ? "" : m.total),
+      celdaCsv(m.medioPago), celdaCsv(m.cobrado === false ? "NO" : "SI"),
+      celdaCsv(m.comentarios)
+    ].join(";") + "\n";
+  }
+  bajarArchivo("movimientos_" + hoyIso() + ".csv", "\ufeff" + lineas, "text/csv;charset=utf-8");
+}
+
+function exportarProductosCsv(){
+  var lineas = "IdProducto;SKU;Nombre;Estado;Proveedor;Categoria;Cant.Min;Prec.Compra;Costo.Promedio;Prec.Venta;Comprado;Vendido;Devuelto;Stock;Capital.Venta;Capital.Costo\n";
+  var i;
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    var t = totalesDelProducto(p.id);
+    var prov = porId(base.proveedores, p.idProveedor);
+    lineas = lineas + [
+      celdaCsv(p.id), celdaCsv(p.sku || ""), celdaCsv(p.nombre), celdaCsv(p.estado), celdaCsv(prov ? prov.nombre : ""),
+      celdaCsv(p.categoria), celdaCsv(p.cantidadMinima), celdaCsv(p.precioCompra), celdaCsv(Math.round(t.costoPromedio * 100) / 100),
+      celdaCsv(p.precioVenta), celdaCsv(t.comprado), celdaCsv(t.vendido), celdaCsv(t.devuelto), celdaCsv(t.stock),
+      celdaCsv(t.stock * aNumero(p.precioVenta)), celdaCsv(Math.round(t.stock * t.costoPromedio * 100) / 100)
+    ].join(";") + "\n";
+  }
+  bajarArchivo("productos_" + hoyIso() + ".csv", "\ufeff" + lineas, "text/csv;charset=utf-8");
+}
+
+function sinAcentos(texto){
+  var s = ("" + texto).toLowerCase();
+  s = s.split("á").join("a").split("é").join("e").split("í").join("i");
+  s = s.split("ó").join("o").split("ú").join("u").split("ñ").join("n");
+  return s.replace(/^\s+|\s+$/g, "");
+}
+
+function partirLineaCsv(linea, separador){
+  var campos = [];
+  var actual = "";
+  var entreComillas = false;
+  var i;
+  for(i = 0; i < linea.length; i++){
+    var letra = linea.charAt(i);
+    if(letra == '"'){
+      if(entreComillas && linea.charAt(i + 1) == '"'){ actual = actual + '"'; i = i + 1; }
+      else{ entreComillas = !entreComillas; }
+    }else if(letra == separador && !entreComillas){
+      campos.push(actual);
+      actual = "";
+    }else{
+      actual = actual + letra;
+    }
+  }
+  campos.push(actual);
+  return campos;
+}
+
+function leerCsv(texto){
+  var limpio = texto.split("\r\n").join("\n").split("\r").join("\n");
+  if(limpio.charCodeAt(0) === 65279){ limpio = limpio.substring(1); }
+  var lineas = limpio.split("\n");
+  var utiles = [];
+  var i;
+  for(i = 0; i < lineas.length; i++){
+    if(lineas[i].replace(/^\s+|\s+$/g, "")){ utiles.push(lineas[i]); }
+  }
+  if(!utiles.length){ return { encabezados: [], filas: [] }; }
+  var separador = ";";
+  if(utiles[0].split(";").length < utiles[0].split(",").length){ separador = ","; }
+  var crudos = partirLineaCsv(utiles[0], separador);
+  var encabezados = [];
+  for(i = 0; i < crudos.length; i++){ encabezados.push(sinAcentos(crudos[i])); }
+  var filas = [];
+  var j;
+  for(i = 1; i < utiles.length; i++){
+    var celdas = partirLineaCsv(utiles[i], separador);
+    var registro = {};
+    for(j = 0; j < encabezados.length; j++){
+      registro[encabezados[j]] = celdas[j] === undefined ? "" : celdas[j].replace(/^\s+|\s+$/g, "");
+    }
+    filas.push(registro);
+  }
+  return { encabezados: encabezados, filas: filas };
+}
+
+function valorDeColumna(registro, nombres){
+  var i;
+  for(i = 0; i < nombres.length; i++){
+    if(registro[nombres[i]] !== undefined && registro[nombres[i]] !== ""){ return registro[nombres[i]]; }
+  }
+  return "";
+}
+
+function numeroDeTexto(texto){
+  if(!texto){ return 0; }
+  var s = ("" + texto).split("$").join("").split(" ").join("");
+  if(s.indexOf(",") >= 0 && s.indexOf(".") >= 0){ s = s.split(".").join(""); }
+  s = s.split(",").join(".");
+  return aNumero(s);
+}
+
+function importarCsv(evento){
+  var archivo = evento.target.files[0];
+  if(!archivo){ return; }
+  var destino = document.getElementById("tipoImportacion").value;
+  var lector = new FileReader();
+  lector.onload = function(){
+    var leido = leerCsv("" + lector.result);
+    var aviso = document.getElementById("avisoImportacion");
+    if(!leido.filas.length){
+      aviso.textContent = "El archivo no tiene filas para importar.";
+      return;
+    }
+    var sumados = 0;
+    var salteados = 0;
+    var i;
+    for(i = 0; i < leido.filas.length; i++){
+      var fila = leido.filas[i];
+      var nombre = valorDeColumna(fila, ["nombre", "razon social", "cliente", "proveedor", "producto", "descripcion"]);
+      if(!nombre){ salteados = salteados + 1; continue; }
+      if(destino == "productos"){
+        var proveedorNombre = valorDeColumna(fila, ["proveedor"]);
+        var idProveedor = 1;
+        var j;
+        for(j = 0; j < base.proveedores.length; j++){
+          if(sinAcentos(base.proveedores[j].nombre) == sinAcentos(proveedorNombre)){ idProveedor = base.proveedores[j].id; }
+        }
+        var categoria = valorDeColumna(fila, ["categoria", "rubro"]) || base.categorias[0];
+        if(categoria){
+          var existeCategoria = false;
+          for(j = 0; j < base.categorias.length; j++){
+            if(base.categorias[j] == categoria){ existeCategoria = true; }
+          }
+          if(!existeCategoria){ base.categorias.push(categoria); }
+        }
+        var nuevoProducto = {
+          id: idSiguiente(base.productos),
+          fechaIngreso: hoyIso(),
+          nombre: nombre,
+          sku: valorDeColumna(fila, ["sku", "codigo", "codigo de barras", "barras"]),
+          estado: base.estados[0],
+          categoria: categoria,
+          idProveedor: idProveedor,
+          cantidadMinima: numeroDeTexto(valorDeColumna(fila, ["cantidad minima", "cant.min", "cantmin", "minimo"])),
+          precioCompra: numeroDeTexto(valorDeColumna(fila, ["precio de compra", "prec.compra", "preciocompra", "costo"])),
+          precioVenta: numeroDeTexto(valorDeColumna(fila, ["precio de venta", "prec.venta", "precioventa", "precio"])),
+          descripcion: valorDeColumna(fila, ["descripcion", "detalle"])
+        };
+        base.productos.push(nuevoProducto);
+        anotarPrecio(nuevoProducto, "Importación CSV");
+      }else{
+        var ficha = fichaPersona(
+          idSiguiente(destino == "clientes" ? base.clientes : base.proveedores),
+          hoyIso(), nombre, valorDeColumna(fila, ["observaciones", "notas"])
+        );
+        ficha.direccion = valorDeColumna(fila, ["direccion", "domicilio"]);
+        ficha.localidad = valorDeColumna(fila, ["localidad", "ciudad"]);
+        ficha.telefono = valorDeColumna(fila, ["telefono", "tel", "telefono1"]);
+        ficha.telefono2 = valorDeColumna(fila, ["telefono2", "tel2"]);
+        ficha.mail = valorDeColumna(fila, ["mail", "email", "correo"]);
+        ficha.contacto = valorDeColumna(fila, ["contacto"]);
+        if(destino == "clientes"){ base.clientes.push(ficha); }
+        else{ base.proveedores.push(ficha); }
+      }
+      sumados = sumados + 1;
+    }
+    grabarBase();
+    guardarCopiaAutomatica("Importación de " + destino);
+    refrescarCatalogo();
+    aviso.textContent = sumados + " registro(s) importados" + (salteados ? " · " + salteados + " fila(s) sin nombre salteadas" : "") + ".";
+    resumenDeLaBase();
+  };
+  lector.readAsText(archivo);
+  evento.target.value = "";
+}
+
+function restaurarDesdeArchivo(evento){
+  var archivo = evento.target.files[0];
+  if(!archivo){ return; }
+  var lector = new FileReader();
+  lector.onload = function(){
+    var traido = null;
+    try{
+      traido = JSON.parse(lector.result);
+    }catch(e){
+      document.getElementById("avisoRespaldo").textContent = "El archivo no es un respaldo válido.";
+      return;
+    }
+    if(!traido || !traido.clientes || !traido.proveedores){
+      document.getElementById("avisoRespaldo").textContent = "El archivo no tiene la estructura esperada.";
+      return;
+    }
+    if(!window.confirm("Se va a reemplazar toda la base actual por el respaldo. ¿Seguimos?")){ return; }
+    base = normalizarBase(traido);
+    grabarBase();
+    renglones.venta = 0;
+    renglones.compra = 0;
+    document.getElementById("cuerpoVenta").innerHTML = "";
+    document.getElementById("cuerpoCompra").innerHTML = "";
+    refrescarCatalogo();
+    mostrar("Panel");
+    document.getElementById("avisoRespaldo").textContent = "Base restaurada.";
+  };
+  lector.readAsText(archivo);
+  evento.target.value = "";
+}
+
+function guardarConfiguracion(){
+  base.config.prefijo = document.getElementById("configPrefijo").value.replace(/^\s+|\s+$/g, "");
+  base.config.formato = document.getElementById("configFormato").value;
+  base.config.comercio = document.getElementById("configComercio").value.replace(/^\s+|\s+$/g, "");
+  grabarBase();
+  document.getElementById("ventaFormato").value = base.config.formato;
+  document.getElementById("compraFormato").value = base.config.formato;
+  document.getElementById("avisoConfig").textContent = "Configuración guardada.";
+}
+
+function vaciarTodo(){
+  if(!window.confirm("Esto borra clientes, proveedores, productos, movimientos y pagos. ¿Seguro?")){ return; }
+  if(!window.confirm("Última confirmación: no hay vuelta atrás si no tenés respaldo.")){ return; }
+  guardarCopiaAutomatica("Antes de vaciar la base");
+  base = baseVacia();
+  grabarBase();
+  renglones.venta = 0;
+  renglones.compra = 0;
+  document.getElementById("cuerpoVenta").innerHTML = "";
+  document.getElementById("cuerpoCompra").innerHTML = "";
+  refrescarCatalogo();
+  mostrar("Panel");
+}
+
+function cargarEjemplo(){
+  if(base.productos.length || base.movimientos.length){
+    if(!window.confirm("Ya hay datos cargados. Los de ejemplo se agregan igual. ¿Seguimos?")){ return; }
+  }
+  var proveedorNuevo = fichaPersona(idSiguiente(base.proveedores), hoyIso(), "Distribuidora del Litoral", "Reparto los martes");
+  proveedorNuevo.localidad = "Gualeguaychú";
+  base.proveedores.push(proveedorNuevo);
+  var clienteNuevo = fichaPersona(idSiguiente(base.clientes), hoyIso(), "Estudio Tamaba", "Cuenta corriente");
+  clienteNuevo.localidad = "Gualeguaychú";
+  base.clientes.push(clienteNuevo);
+  var muestras = [
+    ["Cable de micrófono 6 m", "CAB-XLR-6", 12000, 19500, 5],
+    ["Ficha XLR hembra", "FIC-XLR-H", 2200, 4100, 20],
+    ["Auricular de estudio", "AUR-EST-01", 68000, 109000, 2],
+    ["Pie de micrófono jirafa", "PIE-JIR-01", 34000, 56000, 3]
+  ];
+  var i;
+  for(i = 0; i < muestras.length; i++){
+    var nuevo = {
+      id: idSiguiente(base.productos),
+      fechaIngreso: hoyIso(),
+      nombre: muestras[i][0],
+      sku: muestras[i][1],
+      estado: "ACTIVO",
+      categoria: base.categorias[0],
+      idProveedor: proveedorNuevo.id,
+      cantidadMinima: muestras[i][4],
+      precioCompra: muestras[i][2],
+      precioVenta: muestras[i][3],
+      descripcion: ""
+    };
+    base.productos.push(nuevo);
+    anotarPrecio(nuevo, "Alta del producto");
+  }
+  var idCompra = proximoIdMovimiento();
+  var renglon = proximoIdRenglon();
+  for(i = 0; i < base.productos.length; i++){
+    var p = base.productos[i];
+    base.movimientos.push({
+      idRenglon: renglon, idMovimiento: idCompra, tipo: "COMPRA", fecha: hoyIso(), hora: "09:30",
+      idContraparte: proveedorNuevo.id, contraparte: proveedorNuevo.nombre,
+      idProducto: p.id, producto: p.nombre, cantidad: 10,
+      precio: p.precioCompra, total: p.precioCompra * 10,
+      medioPago: "Transferencia", cobrado: true, comentarios: "Compra de ejemplo"
+    });
+    renglon = renglon + 1;
+  }
+  var idVenta = idCompra + 1;
+  base.movimientos.push({
+    idRenglon: renglon, idMovimiento: idVenta, tipo: "VENTA", fecha: hoyIso(), hora: "15:10",
+    idContraparte: clienteNuevo.id, contraparte: clienteNuevo.nombre,
+    idProducto: base.productos[0].id, producto: base.productos[0].nombre, cantidad: 4,
+    precio: base.productos[0].precioVenta, total: base.productos[0].precioVenta * 4,
+    medioPago: "Efectivo", cobrado: true, comentarios: "Venta de ejemplo"
+  });
+  renglon = renglon + 1;
+  base.movimientos.push({
+    idRenglon: renglon, idMovimiento: idVenta, tipo: "VENTA", fecha: hoyIso(), hora: "15:10",
+    idContraparte: clienteNuevo.id, contraparte: clienteNuevo.nombre,
+    idProducto: base.productos[1].id, producto: base.productos[1].nombre, cantidad: 8,
+    precio: base.productos[1].precioVenta, total: base.productos[1].precioVenta * 8,
+    medioPago: "Efectivo", cobrado: true, comentarios: "Venta de ejemplo"
+  });
+  renglon = renglon + 1;
+  base.movimientos.push({
+    idRenglon: renglon, idMovimiento: idVenta + 1, tipo: "VENTA", fecha: hoyIso(), hora: "17:40",
+    idContraparte: clienteNuevo.id, contraparte: clienteNuevo.nombre,
+    idProducto: base.productos[2].id, producto: base.productos[2].nombre, cantidad: 1,
+    precio: base.productos[2].precioVenta, total: base.productos[2].precioVenta,
+    medioPago: "Cuenta corriente", cobrado: false, comentarios: "Venta a cuenta de ejemplo"
+  });
+  grabarBase();
+  renglones.venta = 0;
+  renglones.compra = 0;
+  document.getElementById("cuerpoVenta").innerHTML = "";
+  document.getElementById("cuerpoCompra").innerHTML = "";
+  refrescarCatalogo();
+  mostrar("Panel");
+}
+
+function conectarNavegacion(){
+  var botones = document.getElementsByTagName("button");
+  var i;
+  for(i = 0; i < botones.length; i++){
+    var destino = botones[i].getAttribute("data-pantalla");
+    if(!destino){ continue; }
+    botones[i].onclick = function(){
+      mostrar(this.getAttribute("data-pantalla"));
+    };
+  }
+  var grupos = ["Precios", "Estadisticas"];
+  var g;
+  for(g = 0; g < grupos.length; g++){
+    conectarSubBarra(grupos[g]);
+  }
+}
+
+function conectarSubBarra(grupo){
+  var contenedor = document.getElementById("subBarra" + grupo);
+  var botones = contenedor.getElementsByTagName("button");
+  var i;
+  for(i = 0; i < botones.length; i++){
+    botones[i].onclick = function(){
+      mostrarSubPanel(grupo, this.getAttribute("data-panel"));
+    };
+  }
+}
+
+function conectarBotones(){
+  document.getElementById("botonNuevoClientePanel").onclick = function(){ abrirFichaCliente(0); };
+  document.getElementById("botonNuevoProveedorPanel").onclick = function(){ abrirFichaProveedor(0); };
+  document.getElementById("botonNuevoProductoPanel").onclick = function(){ abrirFichaProducto(0); };
+
+  document.getElementById("botonAgregaEstado").onclick = function(){
+    var campo = document.getElementById("nuevoEstado");
+    var valor = campo.value.replace(/^\s+|\s+$/g, "");
+    if(!valor){ return; }
+    base.estados.push(valor);
+    campo.value = "";
+    grabarBase();
+    pintaListasAuxiliares();
+  };
+  document.getElementById("botonAgregaCategoria").onclick = function(){
+    var campo = document.getElementById("nuevaCategoria");
+    var valor = campo.value.replace(/^\s+|\s+$/g, "");
+    if(!valor){ return; }
+    base.categorias.push(valor);
+    campo.value = "";
+    grabarBase();
+    pintaListasAuxiliares();
+  };
+
+  document.getElementById("buscaCliente").oninput = pintaListadoClientes;
+  document.getElementById("botonLimpiaCliente").onclick = function(){
+    document.getElementById("buscaCliente").value = "";
+    pintaListadoClientes();
+  };
+  document.getElementById("botonIrNuevoCliente").onclick = function(){ abrirFichaCliente(0); };
+  document.getElementById("botonGuardaCliente").onclick = guardaCliente;
+  document.getElementById("botonCancelaCliente").onclick = function(){
+    clienteEnEdicion = 0;
+    mostrar("Clientes");
+  };
+
+  document.getElementById("buscaProveedor").oninput = pintaListadoProveedores;
+  document.getElementById("botonLimpiaProveedor").onclick = function(){
+    document.getElementById("buscaProveedor").value = "";
+    pintaListadoProveedores();
+  };
+  document.getElementById("botonIrNuevoProveedor").onclick = function(){ abrirFichaProveedor(0); };
+  document.getElementById("botonGuardaProveedor").onclick = guardarProveedor;
+  document.getElementById("botonCancelaProveedor").onclick = function(){
+    proveedorEnEdicion = 0;
+    mostrar("Proveedores");
+  };
+
+  document.getElementById("buscaProducto").oninput = pintaListadoProductos;
+  document.getElementById("filtroEstado").onchange = pintaListadoProductos;
+  document.getElementById("filtroCategoria").onchange = pintaListadoProductos;
+  document.getElementById("filtroProveedorProd").onchange = pintaListadoProductos;
+  document.getElementById("botonLimpiaProducto").onclick = function(){
+    document.getElementById("buscaProducto").value = "";
+    document.getElementById("filtroEstado").value = "";
+    document.getElementById("filtroCategoria").value = "";
+    document.getElementById("filtroProveedorProd").value = "";
+    pintaListadoProductos();
+  };
+  document.getElementById("botonIrNuevoProducto").onclick = function(){ abrirFichaProducto(0); };
+  document.getElementById("botonGuardaProducto").onclick = guardaProducto;
+  document.getElementById("botonCancelaProducto").onclick = function(){
+    productoEnEdicion = 0;
+    mostrar("Productos");
+  };
+
+  document.getElementById("precioAlcance").onchange = function(){
+    cargarAlcanceDePrecios();
+    pintarVistaPreviaPrecios();
+  };
+  document.getElementById("precioAlcanceValor").onchange = pintarVistaPreviaPrecios;
+  document.getElementById("precioCampo").onchange = pintarVistaPreviaPrecios;
+  document.getElementById("precioPorcentaje").oninput = pintarVistaPreviaPrecios;
+  document.getElementById("precioRedondeo").onchange = pintarVistaPreviaPrecios;
+  document.getElementById("botonVistaPreviaPrecios").onclick = pintarVistaPreviaPrecios;
+  document.getElementById("botonAplicaPrecios").onclick = aplicarPrecios;
+  document.getElementById("productoHistorial").onchange = pintarHistorialPrecios;
+  document.getElementById("botonVerHistorial").onclick = pintarHistorialPrecios;
+
+  document.getElementById("botonIngresaVenta").onclick = function(){ registrarOperacion("VENTA"); };
+  document.getElementById("botonImprimeVenta").onclick = function(){ armarComprobante("VENTA"); };
+  document.getElementById("botonLimpiaVenta").onclick = function(){ vaciarPantallaDeCarga("venta"); };
+  document.getElementById("botonIrProductosDesdeVenta").onclick = function(){ mostrar("Productos"); };
+  document.getElementById("botonNuevoClienteDesdeVenta").onclick = function(){ abrirFichaCliente(0); };
+  document.getElementById("botonAgregaRenglonVenta").onclick = function(){ agregarRenglon("venta", "cuerpoVenta"); };
+
+  document.getElementById("botonIngresaCompra").onclick = function(){ registrarOperacion("COMPRA"); };
+  document.getElementById("botonImprimeCompra").onclick = function(){ armarComprobante("COMPRA"); };
+  document.getElementById("botonLimpiaCompra").onclick = function(){ vaciarPantallaDeCarga("compra"); };
+  document.getElementById("botonIrProductosDesdeCompra").onclick = function(){ mostrar("Productos"); };
+  document.getElementById("botonNuevoProveedorDesdeCompra").onclick = function(){ abrirFichaProveedor(0); };
+  document.getElementById("botonAgregaRenglonCompra").onclick = function(){ agregarRenglon("compra", "cuerpoCompra"); };
+
+  document.getElementById("filtroTipoMov").onchange = pintarMovimientos;
+  document.getElementById("filtroCobro").onchange = pintarMovimientos;
+  document.getElementById("filtroDesde").onchange = pintarMovimientos;
+  document.getElementById("filtroHasta").onchange = pintarMovimientos;
+  document.getElementById("filtroTextoMov").oninput = pintarMovimientos;
+  document.getElementById("botonLimpiaMovimientos").onclick = function(){
+    document.getElementById("filtroTipoMov").value = "";
+    document.getElementById("filtroCobro").value = "";
+    document.getElementById("filtroDesde").value = "";
+    document.getElementById("filtroHasta").value = "";
+    document.getElementById("filtroTextoMov").value = "";
+    pintarMovimientos();
+  };
+
+  document.getElementById("botonRegistraPago").onclick = registrarPago;
+  document.getElementById("botonImprimePedido").onclick = imprimirPedido;
+  document.getElementById("botonReposicionACompra").onclick = function(){
+    var elegido = document.getElementById("reposicionProveedor").value;
+    if(!elegido){
+      document.getElementById("avisoReposicion").textContent = "No hay proveedores con faltantes.";
+      return;
+    }
+    cargarPedidoEnCompras(Number(elegido));
+  };
+
+  document.getElementById("periodoComparacion").onchange = compararPeriodos;
+  document.getElementById("botonComparar").onclick = compararPeriodos;
+
+  document.getElementById("botonExportaRespaldo").onclick = exportarRespaldo;
+  document.getElementById("botonExportaMovimientos").onclick = exportarMovimientosCsv;
+  document.getElementById("botonExportaProductos").onclick = exportarProductosCsv;
+  document.getElementById("botonImportaRespaldo").onclick = function(){
+    document.getElementById("archivoRespaldo").click();
+  };
+  document.getElementById("archivoRespaldo").onchange = restaurarDesdeArchivo;
+  document.getElementById("botonImportaCsv").onclick = function(){
+    document.getElementById("archivoCsv").click();
+  };
+  document.getElementById("archivoCsv").onchange = importarCsv;
+  document.getElementById("botonCopiaAhora").onclick = function(){
+    guardarCopiaAutomatica("Copia manual");
+    pintarCopias();
+  };
+  document.getElementById("botonGuardaConfig").onclick = guardarConfiguracion;
+  document.getElementById("botonCargaDemo").onclick = cargarEjemplo;
+  document.getElementById("botonVaciaTodo").onclick = vaciarTodo;
+}
+
+function conectarTablas(){
+  document.onclick = function(evento){
+    var origen = evento.target;
+    if(!origen || origen.tagName != "BUTTON"){ return; }
+    var valor;
+    valor = origen.getAttribute("data-editacliente");
+    if(valor){ abrirFichaCliente(valor); return; }
+    valor = origen.getAttribute("data-borracliente");
+    if(valor){ borrarCliente(Number(valor)); return; }
+    valor = origen.getAttribute("data-editaproveedor");
+    if(valor){ abrirFichaProveedor(valor); return; }
+    valor = origen.getAttribute("data-borraproveedor");
+    if(valor){ borrarProveedor(Number(valor)); return; }
+    valor = origen.getAttribute("data-editaproducto");
+    if(valor){ abrirFichaProducto(valor); return; }
+    valor = origen.getAttribute("data-borraproducto");
+    if(valor){ borrarProducto(Number(valor)); return; }
+    valor = origen.getAttribute("data-editacomprobante");
+    if(valor){ editarComprobante(Number(valor)); return; }
+    valor = origen.getAttribute("data-devuelve");
+    if(valor){ devolverRenglon(Number(valor)); return; }
+    valor = origen.getAttribute("data-anula");
+    if(valor){ anularMovimiento(Number(valor)); return; }
+    valor = origen.getAttribute("data-borrapago");
+    if(valor){ borrarPago(Number(valor)); return; }
+    valor = origen.getAttribute("data-restauracopia");
+    if(valor !== null && valor !== ""){ restaurarCopia(Number(valor)); return; }
+    valor = origen.getAttribute("data-bajacopia");
+    if(valor !== null && valor !== ""){ bajarCopia(Number(valor)); return; }
+    valor = origen.getAttribute("data-quitaestado");
+    if(valor !== null && valor !== ""){
+      if(base.estados.length < 2){
+        window.alert("Tiene que quedar al menos un estado.");
+        return;
+      }
+      base.estados.splice(Number(valor), 1);
+      grabarBase();
+      pintaListasAuxiliares();
+      return;
+    }
+    valor = origen.getAttribute("data-quitacategoria");
+    if(valor !== null && valor !== ""){
+      if(base.categorias.length < 2){
+        window.alert("Tiene que quedar al menos una categoría.");
+        return;
+      }
+      base.categorias.splice(Number(valor), 1);
+      grabarBase();
+      pintaListasAuxiliares();
+      return;
+    }
+  };
+}
+
+function arranque(){
+  base = leerBase();
+  conectarNavegacion();
+  conectarBotones();
+  conectarTablas();
+  refrescarCatalogo();
+  document.getElementById("ventaFormato").value = base.config.formato;
+  document.getElementById("compraFormato").value = base.config.formato;
+  mostrar("Panel");
+  document.getElementById("selloGuardado").textContent = "Base local activa";
+}
+
+if(document.readyState == "loading"){
+  document.addEventListener("DOMContentLoaded", arranque);
+}else{
+  arranque();
+}
+</script>
+</body>
+</html>
